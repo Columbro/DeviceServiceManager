@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System.IO;
-
 
 namespace DeviceServiceManager.Data
 {
