@@ -4,27 +4,53 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewmodels="clr-namespace:DeviceServiceManager.ViewModels"
-        xmlns:local="clr-namespace:DeviceServiceManager.Views"
+        xmlns:views="clr-namespace:DeviceServiceManager.Views"
         mc:Ignorable="d"
-        Title="Device Service Manager - Proof of Concept" Height="450" Width="800">
+        Title="Device Service Manager" Height="600" Width="1000"
+        WindowStartupLocation="CenterScreen">
 
-    <!-- Verknüpfung des ViewModels als DataContext -->
     <Window.DataContext>
         <viewmodels:MainViewModel />
     </Window.DataContext>
 
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewmodels:DashboardViewModel}">
+            <views:DashboardView />
+        </DataTemplate>
+    </Window.Resources>
 
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="0">
-            <Button Content="Load Addresses" Command="{Binding LoadAddressesCommand}" Width="120" Height="30" Margin="0,0,10,0"/>
-            <Button Content="Add Test Address" Command="{Binding AddTestAddressCommand}" Width="120" Height="30"/>
-        </StackPanel>
+    <!-- Haupt-Layout -->
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <!-- Sidebar Menü -->
+            <ColumnDefinition Width="*"/>
+            <!-- Hauptinhalt (Dashboard etc.) -->
+        </Grid.ColumnDefinitions>
 
-        <!-- Das DataGrid zeigt automatisch die Properties unserer Address-Klasse als Spalten an -->
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Addresses}" AutoGenerateColumns="True" IsReadOnly="True"/>
+        <!-- Linke Sidebar (Menü) -->
+        <Border Grid.Column="0" Background="#2C3E50">
+            <StackPanel Margin="0,20,0,0">
+                <TextBlock Text="Menu" Foreground="White" FontSize="18" FontWeight="Bold" Margin="20,0,0,20"/>
+
+                <!-- Navigations-Buttons -->
+                <Button Content="Dashboard" Command="{Binding NavigateDashboardCommand}" 
+                        Background="Transparent" Foreground="White" BorderThickness="0" 
+                        FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand"/>
+
+                <Button Content="Customers" 
+                        Background="Transparent" Foreground="White" BorderThickness="0" 
+                        FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand" Margin="0,5,0,0"/>
+
+                <Button Content="Contracts" 
+                        Background="Transparent" Foreground="White" BorderThickness="0" 
+                        FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand" Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Rechter Inhaltsbereich (Wechselt dynamisch je nach CurrentViewModel) -->
+        <Border Grid.Column="1" Background="White">
+            <ContentControl Content="{Binding CurrentViewModel}" />
+        </Border>
     </Grid>
 </Window>
