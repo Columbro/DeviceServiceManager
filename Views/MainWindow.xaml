@@ -17,6 +17,14 @@
         <DataTemplate DataType="{x:Type viewmodels:DashboardViewModel}">
             <views:DashboardView />
         </DataTemplate>
+   
+    <DataTemplate DataType="{x:Type viewmodels:CustomerViewModel}">
+        <views:CustomerView />
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type viewmodels:ContractListViewModel}">
+        <views:ContractView />
+    </DataTemplate>
     </Window.Resources>
 
     <!-- Haupt-Layout -->
@@ -38,11 +46,11 @@
                         Background="Transparent" Foreground="White" BorderThickness="0" 
                         FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand"/>
 
-                <Button Content="Customers" 
+                <Button Content="Kunden" Command="{Binding NavigateCustomersCommand}"
                         Background="Transparent" Foreground="White" BorderThickness="0" 
                         FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand" Margin="0,5,0,0"/>
 
-                <Button Content="Contracts" 
+                <Button Content="Wartungsverträge" Command="{Binding NavigateContractsCommand}" 
                         Background="Transparent" Foreground="White" BorderThickness="0" 
                         FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand" Margin="0,5,0,0"/>
             </StackPanel>

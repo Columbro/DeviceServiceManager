@@ -11,6 +11,8 @@ namespace DeviceServiceManager.ViewModels
         private ObservableObject _currentViewModel = null!;
 
         private readonly DashboardViewModel _dashboardViewModel;
+        private readonly CustomerViewModel _customerViewModel;
+        private readonly ContractListViewModel _contractListViewModel;
 
         /// <summary>
         /// Gets or sets the currently active ViewModel.
@@ -26,10 +28,22 @@ namespace DeviceServiceManager.ViewModels
             }
         }
 
+        // --- Navigation Commands ---
+
         /// <summary>
         /// Command to navigate to the Dashboard View
         /// </summary>
         public ICommand NavigateDashboardCommand { get; }
+
+        /// <summary>
+        /// Command to navigate to the Customer View.
+        /// </summary>
+        public ICommand NavigateCustomersCommand { get; }
+
+        /// <summary>
+        /// Command to navigate to the Contract List View.
+        /// </summary>
+        public ICommand NavigateContractsCommand { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainViewModel"/> class.
@@ -38,11 +52,23 @@ namespace DeviceServiceManager.ViewModels
         public MainViewModel()
         {
             _dashboardViewModel = new DashboardViewModel();
+            _customerViewModel = new CustomerViewModel();
+            _contractListViewModel = new ContractListViewModel();
 
+            // Navigation Commands
             NavigateDashboardCommand = new RelayCommand(_ =>
                 CurrentViewModel = _dashboardViewModel
             );
 
+            NavigateCustomersCommand = new RelayCommand(_ =>
+                CurrentViewModel = _customerViewModel
+            );
+
+            NavigateContractsCommand = new RelayCommand(_ =>
+                CurrentViewModel = _contractListViewModel
+            );
+
+            // Default View
             CurrentViewModel = _dashboardViewModel;
         }
     }
