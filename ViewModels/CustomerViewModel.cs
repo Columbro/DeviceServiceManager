@@ -1,9 +1,7 @@
 ﻿using DeviceServiceManager.Core;
 using DeviceServiceManager.Models;
 using DeviceServiceManager.Services; 
-using System;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks; 
 using System.Windows;
 using System.Windows.Input;
 

@@ -1,7 +1,7 @@
 ﻿using DeviceServiceManager.Models;
 using DeviceServiceManager.Repositories;
-using System;
-using System.Threading.Tasks;
+using DeviceServiceManager.Data;
+using MySqlConnector;
 
 namespace DeviceServiceManager.Services
 {
@@ -24,42 +24,55 @@ namespace DeviceServiceManager.Services
         }
 
         /// <summary>
-        /// Generates the next available customer number.
-        /// Starts at 1000 if no customers exist in the database.
-        /// </summary>
-        /// <returns>A unique customer number as a string.</returns>
-        private async Task<string> GenerateNextCustomerNumberAsync()
-        {
-            int currentMax = await _customerRepository.GetMaxCustomerNumberAsync();
-            int nextNumber = currentMax + 1;
-
-            return nextNumber.ToString();
-        }
-
-        /// <summary>
         /// Validates, prepares, and saves a new customer along with their addresses to the database.
+        /// Prevents orphaned addresses and race conditions.
         /// </summary>
         /// <param name="customer">The customer object containing billing and delivery addresses.</param>
         public async Task CreateCustomerAsync(Customer customer)
         {
             if (customer.BillingAddress == null || customer.DeliveryAddress == null)
             {
-                throw new ArgumentException("Rechnungs- und Lieferadresse müssen angegeben werden.");
+                throw new ArgumentException("Billing and Delivery addresses must be provided.");
             }
 
-            // 1. Generate the automated Customer Number
-            customer.CustomerNumber = await GenerateNextCustomerNumberAsync();
+            string connectionString = DatabaseConfig.GetConnectionString();
 
-            // 2. Save Addresses to DB and retrieve their newly generated IDs
-            int billingId = await _addressRepository.AddAsync(customer.BillingAddress);
-            int deliveryId = await _addressRepository.AddAsync(customer.DeliveryAddress);
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
 
-            // 3. Assign the generated Address IDs to the Customer object
-            customer.BillingAddressId = billingId;
-            customer.DeliveryAddressId = deliveryId;
+                // START TRANSACTION
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        // 1. Race Condition Prevention: Generate number inside the transaction (locked)
+                        int currentMax = await _customerRepository.GetMaxCustomerNumberAsync(connection, transaction);
+                        customer.CustomerNumber = (currentMax + 1).ToString();
 
-            // 4. Save the Customer to the DB
-            customer.Id = await _customerRepository.AddAsync(customer);
+                        // 2. Save Addresses 
+                        int billingId = await _addressRepository.AddAsync(customer.BillingAddress, connection, transaction);
+                        int deliveryId = await _addressRepository.AddAsync(customer.DeliveryAddress, connection, transaction);
+
+                        customer.BillingAddressId = billingId;
+                        customer.DeliveryAddressId = deliveryId;
+
+                        // 3. Save the Customer
+                        customer.Id = await _customerRepository.AddAsync(customer, connection, transaction);
+
+                        // COMMIT TRANSACTION: If we reach this line, everything worked! Save it permanently.
+                        await transaction.CommitAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // ROLLBACK: Something failed. Delete the addresses we just created and abort!
+                        await transaction.RollbackAsync();
+
+                        // Pass the error up to the ViewModel to show the MessageBox
+                        throw new Exception($"Transaction failed and was rolled back. Reason: {ex.Message}", ex);
+                    }
+                }
+            }
         }
     }
 }
