@@ -28,11 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Repositories\" />
-    <Folder Include="Services\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Assets\dashboard_icon.png" />
     <Resource Include="Assets\docs_icon.png" />
     <Resource Include="Assets\person_icon.png" />

@@ -1,6 +1,10 @@
 ﻿using DeviceServiceManager.Core;
 using DeviceServiceManager.Models;
+using DeviceServiceManager.Services; 
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks; 
+using System.Windows;
 using System.Windows.Input;
 
 namespace DeviceServiceManager.ViewModels
@@ -15,6 +19,7 @@ namespace DeviceServiceManager.ViewModels
         private Customer? _selectedCustomer;
         private string _searchText = string.Empty;
         private bool _isFormVisible;
+        private readonly CustomerService _customerService;
 
         /// <summary>
         /// Gets the collection of customers displayed in the list (Master).
@@ -82,12 +87,13 @@ namespace DeviceServiceManager.ViewModels
         /// </summary>
         public CustomerViewModel()
         {
+            _customerService = new CustomerService();
             Customers = new ObservableCollection<Customer>();
             IsFormVisible = false;
 
             // Initialize Commands
             CreateNewCustomerCommand = new RelayCommand(ExecuteCreateNewCustomer);
-            SaveCustomerCommand = new RelayCommand(ExecuteSaveCustomer);
+            SaveCustomerCommand = new RelayCommand(async _ => await ExecuteSaveCustomerAsync());
             CancelCommand = new RelayCommand(ExecuteCancel);
         }
 
@@ -111,23 +117,57 @@ namespace DeviceServiceManager.ViewModels
         /// Validates user input and saves the customer data.
         /// </summary>
         /// <param name="parameter">Optional command parameter.</param>
-        private void ExecuteSaveCustomer(object? parameter)
+        private async Task ExecuteSaveCustomerAsync()
         {
-            // Basic validation: Check for null or empty required strings
-            if (SelectedCustomer == null || string.IsNullOrWhiteSpace(SelectedCustomer.CustomerNumber)
-                || string.IsNullOrWhiteSpace(SelectedCustomer.Name))
+            if (SelectedCustomer == null) return;
+
+            // 1. Validierung (Kundennummer haben wir entfernt, also prüfen wir nur noch den Firmennamen)
+            if (string.IsNullOrWhiteSpace(SelectedCustomer.Name))
             {
-                System.Windows.MessageBox.Show("Bitte füllen Sie alle Pflichtfelder aus.",
-                                               "Fehlende Daten", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+                MessageBox.Show("Bitte geben Sie einen Firmennamen ein!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // TODO: Call CustomerService to execute DB Insert or Update
+            // Prüfen, ob die Pflichtfelder der Rechnungsadresse ausgefüllt sind
+            if (SelectedCustomer.BillingAddress == null ||
+                string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.Street) ||
+                string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.ZipCode) ||
+                string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.City))
+            {
+                MessageBox.Show("Bitte füllen Sie die Pflichtfelder der Rechnungsadresse (Straße, PLZ, Ort) aus!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            System.Windows.MessageBox.Show("Kunde wird gespeichert.", "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            try
+            {
+                // 2. Lieferadresse klonen (Der Trick!)
+                // Wir erzeugen ein neues Adress-Objekt mit den exakten Werten der Rechnungsadresse
+                SelectedCustomer.DeliveryAddress = new Address
+                {
+                    Street = SelectedCustomer.BillingAddress.Street,
+                    HouseNumber = SelectedCustomer.BillingAddress.HouseNumber,
+                    ZipCode = SelectedCustomer.BillingAddress.ZipCode,
+                    City = SelectedCustomer.BillingAddress.City,
+                    Country = SelectedCustomer.BillingAddress.Country
+                };
 
-            // Hide form after successful save
-            IsFormVisible = false;
+                // 3. Den Service aufrufen, um alles in die Datenbank zu schreiben
+                await _customerService.CreateCustomerAsync(SelectedCustomer);
+
+                // 4. Erfolgsmeldung und Aufräumen
+                MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {SelectedCustomer.CustomerNumber}",
+                                "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // Später: Kundenliste aktualisieren
+                // await LoadCustomersAsync();
+
+                SelectedCustomer = null;
+                IsFormVisible = false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fehler beim Speichern in die Datenbank:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>

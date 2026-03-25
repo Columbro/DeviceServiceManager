@@ -118,12 +118,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Kundennummer *"/>
-                                <TextBox Text="{Binding CustomerNumber}" Margin="0,5,0,10" Padding="5"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2">
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="3">
                                 <TextBlock Text="Firmenname *"/>
                                 <TextBox Text="{Binding Name}" Margin="0,5,0,10" Padding="5"/>
                             </StackPanel>
