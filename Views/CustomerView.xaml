@@ -7,10 +7,191 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <Grid>
-        <TextBlock Text="Kundenverwaltung (Kommt bald!)" 
-                   FontSize="24" FontWeight="Bold" 
-                   HorizontalAlignment="Center" VerticalAlignment="Center" 
-                   Foreground="#2980B9"/>
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    
+    <!-- Haupt-Grid: Links Liste (Master), Rechts Formular (Detail) -->
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <!-- 40% Breite für die Liste -->
+            <ColumnDefinition Width="15"/>
+            <!-- Abstand -->
+            <ColumnDefinition Width="6*"/>
+            <!-- 60% Breite für Details -->
+        </Grid.ColumnDefinitions>
+
+        <!-- LINKE SEITE: KUNDENLISTE (Master) -->
+        <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15">
+            <!-- Ein dezenter Schatten für einen modernen Look (optional, sieht aber professionell aus) -->
+            <Border.Effect>
+                <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.5"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Titel & Suchfeld -->
+                    <RowDefinition Height="*"/>
+                    <!-- DataGrid -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Button "Neu" -->
+                </Grid.RowDefinitions>
+
+                <!-- Kopfbereich Liste -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                    <TextBlock Text="Kundenübersicht" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+
+                    <!-- Suchfeld (Binding kommt später) -->
+                    <Grid>
+                        <TextBox Padding="5,5,25,5" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="🔍" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray" IsHitTestVisible="False"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Die eigentliche Liste -->
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Customers}" 
+                          SelectedItem="{Binding SelectedCustomer}"
+                          AutoGenerateColumns="False" IsReadOnly="True" 
+                          SelectionMode="Single" HeadersVisibility="Column"
+                          GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE"
+                          BorderThickness="1" BorderBrush="#DDDDDD" Background="White">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Kd-Nr." Binding="{Binding CustomerNumber}" Width="Auto"/>
+                        <DataGridTextColumn Header="Firmenname" Binding="{Binding Name}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Buttonbereich Liste -->
+                <Button Grid.Row="2" Content="+ Neuer Kunde" Command="{Binding CreateNewCustomerCommand}"
+                        Margin="0,15,0,0" Padding="10,8" Background="#3498DB" Foreground="White" 
+                        BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- RECHTE SEITE: KUNDENDETAILS (Detail / Formular) -->
+        <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="20" Visibility="{Binding IsFormVisible, Converter={StaticResource BoolToVis}}">
+            <Border.Effect>
+                <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.5"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <!-- Titel -->
+                    <RowDefinition Height="*"/>
+                    <!-- Scrollbarer Formularbereich -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Speichern/Löschen Buttons -->
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Kundendetails bearbeiten" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+                <!-- Wir verpacken das Formular in einen ScrollViewer, falls Bildschirme klein sind -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
+
+                    <!-- HIER beginnt das Binding an das ausgewählte Objekt (SelectedCustomer) -->
+                    <StackPanel DataContext="{Binding SelectedCustomer}">
+
+                        <!-- Abschnitt: Stammdaten -->
+                        <TextBlock Text="Stammdaten" FontWeight="Bold" Foreground="#7F8C8D" Margin="0,0,0,10"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Kundennummer *"/>
+                                <TextBox Text="{Binding CustomerNumber}" Margin="0,5,0,10" Padding="5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Firmenname *"/>
+                                <TextBox Text="{Binding Name}" Margin="0,5,0,10" Padding="5"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Ansprechpartner"/>
+                                <TextBox Text="{Binding ContactPerson}" Margin="0,5,0,10" Padding="5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="E-Mail Adresse"/>
+                                <TextBox Text="{Binding Email}" Margin="0,5,0,10" Padding="5"/>
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel>
+                            <TextBlock Text="Telefonnummer"/>
+                            <TextBox Text="{Binding Phone}" Margin="0,5,0,20" Padding="5" Width="200" HorizontalAlignment="Left"/>
+                        </StackPanel>
+
+                        <Separator Margin="0,0,0,15" Background="#EEEEEE"/>
+
+                        <!-- Abschnitt: Rechnungsadresse -->
+                        <TextBlock Text="Rechnungsadresse" FontWeight="Bold" Foreground="#7F8C8D" Margin="0,0,0,10"/>
+                        <StackPanel DataContext="{Binding BillingAddress}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Straße *"/>
+                                    <TextBox Text="{Binding Street}" Margin="0,5,0,10" Padding="5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Hausnr. *"/>
+                                    <TextBox Text="{Binding HouseNumber}" Margin="0,5,0,10" Padding="5"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="3*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="PLZ *"/>
+                                    <TextBox Text="{Binding ZipCode}" Margin="0,5,0,10" Padding="5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Ort *"/>
+                                    <TextBox Text="{Binding City}" Margin="0,5,0,20" Padding="5"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Lieferadresse lassen wir erstmal weg, um den Code übersichtlich zu halten. 
+                             Die bauen wir später über eine Checkbox ("Identisch mit Rechnungsadresse") ein! -->
+
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Buttonbereich Formular (Speichern / Löschen) -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                    <Button Content="Abbrechen" Command="{Binding CancelCommand}" 
+                            Background="#E74C3C" Foreground="White" BorderThickness="0" 
+                            Padding="15,8" Margin="0,0,10,0" Cursor="Hand" Width="100"/>
+
+                    <Button Content="Speichern" Command="{Binding SaveCustomerCommand}" 
+                            Background="#27AE60" Foreground="White" BorderThickness="0" 
+                            Padding="15,8" Cursor="Hand" Width="120" FontWeight="Bold"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

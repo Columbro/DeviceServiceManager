@@ -55,7 +55,7 @@ namespace DeviceServiceManager.ViewModels
             _customerViewModel = new CustomerViewModel();
             _contractListViewModel = new ContractListViewModel();
 
-            // Navigation Commands
+            // --- Navigation Commands ---
             NavigateDashboardCommand = new RelayCommand(_ =>
                 CurrentViewModel = _dashboardViewModel
             );
