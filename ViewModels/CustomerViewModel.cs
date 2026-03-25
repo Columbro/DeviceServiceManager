@@ -18,6 +18,7 @@ namespace DeviceServiceManager.ViewModels
         private string _searchText = string.Empty;
         private bool _isFormVisible;
         private readonly CustomerService _customerService;
+        private List<Customer> _allCustomersCache = new();
 
         /// <summary>
         /// Gets the collection of customers displayed in the list (Master).
@@ -69,7 +70,8 @@ namespace DeviceServiceManager.ViewModels
             {
                 _searchText = value;
                 OnPropertyChanged();
-                // We call the search logic here later
+                
+                ApplySearchFilter();
             }
         }
 
@@ -93,6 +95,8 @@ namespace DeviceServiceManager.ViewModels
             CreateNewCustomerCommand = new RelayCommand(ExecuteCreateNewCustomer);
             SaveCustomerCommand = new RelayCommand(async _ => await ExecuteSaveCustomerAsync());
             CancelCommand = new RelayCommand(ExecuteCancel);
+
+            _ = LoadCustomersAsync();
         }
 
         // --- Execution Methods ---
@@ -156,8 +160,8 @@ namespace DeviceServiceManager.ViewModels
                 MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {SelectedCustomer.CustomerNumber}",
                                 "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Später: Kundenliste aktualisieren
-                // await LoadCustomersAsync();
+                
+                await LoadCustomersAsync();
 
                 SelectedCustomer = null;
                 IsFormVisible = false;
@@ -177,6 +181,43 @@ namespace DeviceServiceManager.ViewModels
             // Discard and hide form
             SelectedCustomer = null;
             IsFormVisible = false;
+        }
+
+
+        /// <summary>
+        /// Loads all customers from the database and updates the UI.
+        /// </summary>
+        public async Task LoadCustomersAsync()
+        {
+            try
+            {
+                _allCustomersCache = await _customerService.GetAllCustomersAsync();
+                ApplySearchFilter();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fehler beim Laden der Kundenliste:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Filters the cached customer list based on the search text.
+        /// </summary>
+        private void ApplySearchFilter()
+        {
+            Customers.Clear();
+
+            foreach (var customer in _allCustomersCache)
+            {
+                // If search is empty, show all. Otherwise check if Name, CustomerNumber or ContactPerson contains the text.
+                if (string.IsNullOrWhiteSpace(SearchText) ||
+                    customer.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    customer.CustomerNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    (customer.ContactPerson != null && customer.ContactPerson.Contains(SearchText, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Customers.Add(customer);
+                }
+            }
         }
     }
 }

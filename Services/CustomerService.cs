@@ -74,5 +74,13 @@ namespace DeviceServiceManager.Services
                 }
             }
         }
+
+        /// <summary>
+        /// Retrieves a complete list of all customers from the repository.
+        /// </summary>
+        public async Task<List<Customer>> GetAllCustomersAsync()
+        {
+            return await _customerRepository.GetAllAsync();
+        }
     }
 }

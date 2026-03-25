@@ -83,5 +83,83 @@ namespace DeviceServiceManager.Repositories
                 throw new Exception("Database error occurred while inserting the customer.", ex);
             }
         }
+
+        /// <summary>
+        /// Retrieves all customers including their billing and delivery addresses from the database.
+        /// Uses INNER JOINs to fetch all related data in a single query (Eager Loading).
+        /// </summary>
+        /// <returns>A list of fully populated Customer objects.</returns>
+        public async Task<List<Customer>> GetAllAsync()
+        {
+            var customers = new List<Customer>();
+
+            // The connection string needs to be fetched from the config
+            string connectionString = DatabaseConfig.GetConnectionString();
+
+            // SQL Query with ALIASES (k, r, l) to separate the columns clearly
+            string query = @"
+                SELECT 
+                    k.id, k.kundennummer, k.name, k.ansprechpartner, k.email, k.telefon, k.erstellt_am,
+                    k.rechnungsadresse_id, k.lieferadresse_id,
+                    r.id AS r_id, r.strasse AS r_strasse, r.hausnummer AS r_hausnummer, r.plz AS r_plz, r.ort AS r_ort, r.land AS r_land,
+                    l.id AS l_id, l.strasse AS l_strasse, l.hausnummer AS l_hausnummer, l.plz AS l_plz, l.ort AS l_ort, l.land AS l_land
+                FROM kunden k
+                INNER JOIN adressen r ON k.rechnungsadresse_id = r.id
+                INNER JOIN adressen l ON k.lieferadresse_id = l.id
+                ORDER BY k.kundennummer ASC;";
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+                using (var command = new MySqlCommand(query, connection))
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var customer = new Customer
+                        {
+                            Id = reader.GetInt32("id"),
+                            CustomerNumber = reader.GetString("kundennummer"),
+                            Name = reader.GetString("name"),
+
+                            // Handling nullable fields
+                            ContactPerson = reader.IsDBNull(reader.GetOrdinal("ansprechpartner")) ? null : reader.GetString("ansprechpartner"),
+                            Email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : reader.GetString("email"),
+                            Phone = reader.IsDBNull(reader.GetOrdinal("telefon")) ? null : reader.GetString("telefon"),
+
+                            CreatedAt = reader.GetDateTime("erstellt_am"),
+                            BillingAddressId = reader.GetInt32("rechnungsadresse_id"),
+                            DeliveryAddressId = reader.GetInt32("lieferadresse_id"),
+
+                            // Map the Billing Address
+                            BillingAddress = new Address
+                            {
+                                Id = reader.GetInt32("r_id"),
+                                Street = reader.GetString("r_strasse"),
+                                HouseNumber = reader.GetString("r_hausnummer"),
+                                ZipCode = reader.GetString("r_plz"),
+                                City = reader.GetString("r_ort"),
+                                Country = reader.GetString("r_land")
+                            },
+
+                            // Map the Delivery Address
+                            DeliveryAddress = new Address
+                            {
+                                Id = reader.GetInt32("l_id"),
+                                Street = reader.GetString("l_strasse"),
+                                HouseNumber = reader.GetString("l_hausnummer"),
+                                ZipCode = reader.GetString("l_plz"),
+                                City = reader.GetString("l_ort"),
+                                Country = reader.GetString("l_land")
+                            }
+                        };
+
+                        customers.Add(customer);
+                    }
+                }
+            }
+
+            return customers;
+        }
     }
 }
