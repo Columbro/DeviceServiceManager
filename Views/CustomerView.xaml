@@ -10,7 +10,7 @@
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </UserControl.Resources>
-    
+
     <!-- Haupt-Grid: Links Liste (Master), Rechts Formular (Detail) -->
     <Grid Margin="15">
         <Grid.ColumnDefinitions>
@@ -24,10 +24,25 @@
 
         <!-- LINKE SEITE: KUNDENLISTE (Master) -->
         <Border Grid.Column="0" Background="White" CornerRadius="8" Padding="15">
-            <!-- Ein dezenter Schatten für einen modernen Look (optional, sieht aber professionell aus) -->
+            <!-- Ein dezenter Schatten für einen modernen Look -->
             <Border.Effect>
                 <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.5"/>
             </Border.Effect>
+
+            <!-- Dynamische Breite über DataTrigger -->
+            <Border.Style>
+                <Style TargetType="Border">
+                    <!-- Default state: Take only the first column (40% width) -->
+                    <Setter Property="Grid.Column" Value="0" />
+                    <Setter Property="Grid.ColumnSpan" Value="1" />
+                    <Style.Triggers>
+                        <!-- When the form is hidden, expand across all 3 columns (100% width) -->
+                        <DataTrigger Binding="{Binding IsFormVisible}" Value="False">
+                            <Setter Property="Grid.ColumnSpan" Value="3" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
 
             <Grid>
                 <Grid.RowDefinitions>

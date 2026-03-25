@@ -62,7 +62,7 @@ namespace DeviceServiceManager.ViewModels
             get => _searchText;
             set
             {
-                _searchText = value; 
+                _searchText = value;
                 OnPropertyChanged();
                 // We call the search logic here later
             }
@@ -102,7 +102,7 @@ namespace DeviceServiceManager.ViewModels
         private void ExecuteSaveCustomer(object? parameter)
         {
             // Validation: If required fields are left blank, the process is terminated here and a message is displayed
-            if (SelectedCustomer == null || string.IsNullOrWhiteSpace(SelectedCustomer.CustomerNumber) 
+            if (SelectedCustomer == null || string.IsNullOrWhiteSpace(SelectedCustomer.CustomerNumber)
                 || string.IsNullOrWhiteSpace(SelectedCustomer.Name))
             {
                 System.Windows.MessageBox.Show("Bitte füllen Sie alle Pflichtfelder aus.",
