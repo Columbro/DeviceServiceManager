@@ -13,52 +13,83 @@
         <viewmodels:MainViewModel />
     </Window.DataContext>
 
+    <!-- Zuweisung ViewModel -> View -->
     <Window.Resources>
         <DataTemplate DataType="{x:Type viewmodels:DashboardViewModel}">
             <views:DashboardView />
         </DataTemplate>
-   
-    <DataTemplate DataType="{x:Type viewmodels:CustomerViewModel}">
-        <views:CustomerView />
-    </DataTemplate>
 
-    <DataTemplate DataType="{x:Type viewmodels:ContractListViewModel}">
-        <views:ContractView />
-    </DataTemplate>
+        <DataTemplate DataType="{x:Type viewmodels:CustomerViewModel}">
+            <views:CustomerView />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewmodels:ContractListViewModel}">
+            <views:ContractView />
+            <!-- Hier stand vorher ContractListView, prüfe ob der Name so bei dir stimmt! -->
+        </DataTemplate>
     </Window.Resources>
 
-    <!-- Haupt-Layout -->
+    <!-- HIER HAT DAS HAUPT-GRID GEFEHLT -->
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
-            <!-- Sidebar Menü -->
+            <ColumnDefinition Width="240"/>
+            <!-- 240 Pixel für die Sidebar -->
             <ColumnDefinition Width="*"/>
-            <!-- Hauptinhalt (Dashboard etc.) -->
+            <!-- Der gesamte restliche Platz für den Inhalt -->
         </Grid.ColumnDefinitions>
 
-        <!-- Linke Sidebar (Menü) -->
-        <Border Grid.Column="0" Background="#2C3E50">
-            <StackPanel Margin="0,20,0,0">
-                <TextBlock Text="Menu" Foreground="White" FontSize="18" FontWeight="Bold" Margin="20,0,0,20"/>
+        <!-- 1. SPALTE: Left Sidebar (Menu) -->
+        <Border Grid.Column="0" Background="#01355E">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <!-- Navigations-Buttons -->
-                <Button Content="Dashboard" Command="{Binding NavigateDashboardCommand}" 
-                        Background="Transparent" Foreground="White" BorderThickness="0" 
-                        FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand"/>
+                <!-- Corporate Identity / Logo Area -->
+                <StackPanel Grid.Row="0" Margin="0,20,0,30">
+                    <TextBlock Text="Weilandt Elektronik GmbH" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Service Manager" Foreground="#95A5A6" FontSize="12" HorizontalAlignment="Center"/>
+                </StackPanel>
 
-                <Button Content="Kunden" Command="{Binding NavigateCustomersCommand}"
-                        Background="Transparent" Foreground="White" BorderThickness="0" 
-                        FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand" Margin="0,5,0,0"/>
+                <!-- Navigation Buttons with Icons -->
+                <StackPanel Grid.Row="1">
+                    <TextBlock Text="NAVIGATION" Foreground="White" FontSize="11" FontWeight="Bold" Margin="20,25,0,10"/>
 
-                <Button Content="Wartungsverträge" Command="{Binding NavigateContractsCommand}" 
-                        Background="Transparent" Foreground="White" BorderThickness="0" 
-                        FontSize="16" HorizontalContentAlignment="Left" Padding="20,10" Cursor="Hand" Margin="0,5,0,0"/>
-            </StackPanel>
+                    <!-- Dashboard Button -->
+                    <Button Command="{Binding NavigateDashboardCommand}" 
+                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="20,12" HorizontalContentAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Wichtig: Width, Height und Margin hinzugefügt! -->
+                            <Image Source="/Assets/dashboard_icon.png" Width="18" Height="18" Margin="0,0,15,0" Stretch="Uniform"/>
+                            <TextBlock Text="Dashboard" Foreground="White" FontSize="15" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Customers Button -->
+                    <Button Command="{Binding NavigateCustomersCommand}" 
+                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="20,12" HorizontalContentAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Assets/person_icon.png" Width="18" Height="18" Margin="0,0,15,0" Stretch="Uniform"/>
+                            <TextBlock Text="Kunden" Foreground="White" FontSize="15" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Contracts Button -->
+                    <Button Command="{Binding NavigateContractsCommand}" 
+                            Background="Transparent" BorderThickness="0" Cursor="Hand" Padding="20,12" HorizontalContentAlignment="Left">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Assets/docs_icon.png" Width="18" Height="18" Margin="0,0,15,0" Stretch="Uniform"/>
+                            <TextBlock Text="Wartungsverträge" Foreground="White" FontSize="15" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- Rechter Inhaltsbereich (Wechselt dynamisch je nach CurrentViewModel) -->
-        <Border Grid.Column="1" Background="White">
+        <Border Grid.Column="1" Background="#F5F7FA">
             <ContentControl Content="{Binding CurrentViewModel}" />
         </Border>
+
     </Grid>
 </Window>

@@ -34,6 +34,7 @@ namespace DeviceServiceManager.ViewModels
                 _selectedCustomer = value;
                 OnPropertyChanged();
 
+                // Show the detail form automatically when a customer is selected
                 if (_selectedCustomer != null)
                 {
                     _isFormVisible = true;
@@ -42,7 +43,8 @@ namespace DeviceServiceManager.ViewModels
         }
 
         /// <summary>
-        /// Gets of sets the visibility of the formular.
+        /// Gets or sets a value indicating whether the detail form is visible.
+        /// Used by XAML view to dynamically adjust layout and column spans.
         /// </summary>
         public bool IsFormVisible
         {
@@ -69,12 +71,14 @@ namespace DeviceServiceManager.ViewModels
         }
 
         // --- Commands ---
+
         public ICommand CreateNewCustomerCommand { get; }
         public ICommand SaveCustomerCommand { get; }
         public ICommand CancelCommand { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CustomerViewModel"/> class.
+        /// Sets up the initial state and configures the ICommands.
         /// </summary>
         public CustomerViewModel()
         {
@@ -88,9 +92,13 @@ namespace DeviceServiceManager.ViewModels
         }
 
         // --- Execution Methods ---
+
+        /// Prepares the UI for the creation of a new customer.
+        /// </summary>
+        /// <param name="parameter">Optional command parameter.</param>
         private void ExecuteCreateNewCustomer(object? parameter)
         {
-            // Creates an empty customer object (including an empty address) that populates the form
+            // Initialize a clean object with empty addresses to prevent NullReferenceExceptions in the UI binding
             SelectedCustomer = new Customer
             {
                 BillingAddress = new Address(),
@@ -99,9 +107,13 @@ namespace DeviceServiceManager.ViewModels
             IsFormVisible = true;
         }
 
+        /// <summary>
+        /// Validates user input and saves the customer data.
+        /// </summary>
+        /// <param name="parameter">Optional command parameter.</param>
         private void ExecuteSaveCustomer(object? parameter)
         {
-            // Validation: If required fields are left blank, the process is terminated here and a message is displayed
+            // Basic validation: Check for null or empty required strings
             if (SelectedCustomer == null || string.IsNullOrWhiteSpace(SelectedCustomer.CustomerNumber)
                 || string.IsNullOrWhiteSpace(SelectedCustomer.Name))
             {
@@ -110,13 +122,18 @@ namespace DeviceServiceManager.ViewModels
                 return;
             }
 
-            // Später: DB Insert oder Update
-            System.Windows.MessageBox.Show("Kunde wird gespeichert...", "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            // TODO: Call CustomerService to execute DB Insert or Update
 
-            // Nach dem Speichern Formular wieder schließen
+            System.Windows.MessageBox.Show("Kunde wird gespeichert.", "Erfolg", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+
+            // Hide form after successful save
             IsFormVisible = false;
         }
 
+        /// <summary>
+        /// Discards the current selection and hides the form.
+        /// </summary>
+        /// <param name="parameter">Optional command parameter.</param>
         private void ExecuteCancel(object? parameter)
         {
             // Discard and hide form

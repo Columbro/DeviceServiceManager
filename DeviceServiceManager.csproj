@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\dashboard_icon.png" />
+    <None Remove="Assets\docs_icon.png" />
+    <None Remove="Assets\person_icon.png" />
+    <None Remove="Assets\search_icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />
     <PackageReference Include="MySqlConnector" Version="2.5.0" />
@@ -23,6 +30,13 @@
   <ItemGroup>
     <Folder Include="Repositories\" />
     <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\dashboard_icon.png" />
+    <Resource Include="Assets\docs_icon.png" />
+    <Resource Include="Assets\person_icon.png" />
+    <Resource Include="Assets\search_icon.png" />
   </ItemGroup>
 
 </Project>
