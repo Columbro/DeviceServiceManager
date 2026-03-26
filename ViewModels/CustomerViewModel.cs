@@ -19,6 +19,7 @@ namespace DeviceServiceManager.ViewModels
         private bool _isFormVisible;
         private readonly CustomerService _customerService;
         private List<Customer> _allCustomersCache = new();
+        private bool _isDeliveryAddressDifferent;
 
         /// <summary>
         /// Gets the collection of customers displayed in the list (Master).
@@ -41,6 +42,8 @@ namespace DeviceServiceManager.ViewModels
                 // Show the detail form automatically when a customer is selected
                 if (_selectedCustomer != null)
                 {
+                    IsDeliveryAddressDifferent = _selectedCustomer.BillingAddress?.Street != 
+                        _selectedCustomer.DeliveryAddress?.Street;
                     _isFormVisible = true;
                 }
             }
@@ -74,6 +77,33 @@ namespace DeviceServiceManager.ViewModels
                 ApplySearchFilter();
             }
         }
+
+        /// <summary>
+        /// Controls the visibility of the delivery address form.
+        /// Bound to the Checkbox in the UI.
+        /// </summary>
+        public bool IsDeliveryAddressDifferent
+        {
+            get => _isDeliveryAddressDifferent;
+            set
+            {
+                _isDeliveryAddressDifferent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// A predefined list of countries for the UI ComboBox to ensure data consistency.
+        /// </summary>
+        public List<string> AvailableCountries { get; } = new()
+        {
+            "Deutschland",
+            "Österreich",
+            "Schweiz",
+            "Niederlande",
+            "Belgien",
+            "Frankreich"
+        };
 
         // --- Commands ---
 
@@ -109,9 +139,11 @@ namespace DeviceServiceManager.ViewModels
             // Initialize a clean object with empty addresses to prevent NullReferenceExceptions in the UI binding
             SelectedCustomer = new Customer
             {
-                BillingAddress = new Address(),
-                DeliveryAddress = new Address()
+                BillingAddress = new Address{Country = "Deutschland"},
+                DeliveryAddress = new Address { Country = "Deutschland"}
             };
+
+            IsDeliveryAddressDifferent = false;
             IsFormVisible = true;
         }
 
@@ -142,16 +174,27 @@ namespace DeviceServiceManager.ViewModels
 
             try
             {
-                // 2. Clone the shipping address (TEMPORARY SOLUTION)
-                // We create a new address object with the exact values from the billing address
-                SelectedCustomer.DeliveryAddress = new Address
+                // 2. Clone the shipping address 
+                if (!IsDeliveryAddressDifferent)
                 {
-                    Street = SelectedCustomer.BillingAddress.Street,
-                    HouseNumber = SelectedCustomer.BillingAddress.HouseNumber,
-                    ZipCode = SelectedCustomer.BillingAddress.ZipCode,
-                    City = SelectedCustomer.BillingAddress.City,
-                    Country = SelectedCustomer.BillingAddress.Country
-                };
+                    // If checkbox is NOT checked, we clone the billing address to the delivery address
+                    SelectedCustomer.DeliveryAddress!.Street = SelectedCustomer.BillingAddress!.Street;
+                    SelectedCustomer.DeliveryAddress.HouseNumber = SelectedCustomer.BillingAddress.HouseNumber;
+                    SelectedCustomer.DeliveryAddress.ZipCode = SelectedCustomer.BillingAddress.ZipCode;
+                    SelectedCustomer.DeliveryAddress.City = SelectedCustomer.BillingAddress.City;
+                    SelectedCustomer.DeliveryAddress.Country = SelectedCustomer.BillingAddress.Country;
+                }
+                else
+                {
+                    // If checkbox IS checked, validate the delivery address!
+                    if (string.IsNullOrWhiteSpace(SelectedCustomer.DeliveryAddress!.Street) ||
+                        string.IsNullOrWhiteSpace(SelectedCustomer.DeliveryAddress.ZipCode) ||
+                        string.IsNullOrWhiteSpace(SelectedCustomer.DeliveryAddress.City))
+                    {
+                        MessageBox.Show("Bitte füllen Sie die Pflichtfelder der abweichenden Lieferadresse aus!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
 
                 // 3. Call the service to write everything to the database
                 if (SelectedCustomer.Id == 0)

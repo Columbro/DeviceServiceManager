@@ -171,21 +171,77 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="1*"/>
                                     <ColumnDefinition Width="10"/>
-                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="2*"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="PLZ *"/>
-                                    <TextBox Text="{Binding ZipCode}" Margin="0,5,0,10" Padding="5"/>
+                                    <TextBox Text="{Binding ZipCode}" Margin="0,5,0,20" Padding="5"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2">
                                     <TextBlock Text="Ort *"/>
                                     <TextBox Text="{Binding City}" Margin="0,5,0,20" Padding="5"/>
                                 </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Land *"/>
+                                    <!-- ComboBox greift auf AvailableCountries im Root-ViewModel zu -->
+                                    <ComboBox ItemsSource="{Binding DataContext.AvailableCountries, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                              SelectedItem="{Binding Country}" Margin="0,5,0,20" Padding="5"/>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
 
-                        <!-- Lieferadresse lassen wir erstmal weg, um den Code übersichtlich zu halten. 
-                             Die bauen wir später über eine Checkbox ("Identisch mit Rechnungsadresse") ein! -->
+                        <Separator Margin="0,10,0,15" Background="#EEEEEE"/>
+
+                        <!-- Die magische Checkbox -->
+                        <CheckBox Content="Abweichende Lieferadresse angeben" 
+                                  IsChecked="{Binding DataContext.IsDeliveryAddressDifferent, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  Margin="0,0,0,15" FontWeight="SemiBold" Foreground="#2C3E50" Cursor="Hand"/>
+
+                        <!-- Abschnitt: Lieferadresse (Nur sichtbar, wenn Checkbox angehakt ist) -->
+                        <StackPanel DataContext="{Binding DeliveryAddress}" 
+                                    Visibility="{Binding DataContext.IsDeliveryAddressDifferent, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Lieferadresse" FontWeight="Bold" Foreground="#7F8C8D" Margin="0,0,0,10"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Straße *"/>
+                                    <TextBox Text="{Binding Street}" Margin="0,5,0,10" Padding="5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Hausnr. *"/>
+                                    <TextBox Text="{Binding HouseNumber}" Margin="0,5,0,10" Padding="5"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="2*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="PLZ *"/>
+                                    <TextBox Text="{Binding ZipCode}" Margin="0,5,0,20" Padding="5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Ort *"/>
+                                    <TextBox Text="{Binding City}" Margin="0,5,0,20" Padding="5"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="Land *"/>
+                                    <ComboBox ItemsSource="{Binding DataContext.AvailableCountries, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                              SelectedItem="{Binding Country}" Margin="0,5,0,20" Padding="5"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
 
                     </StackPanel>
                 </ScrollViewer>
