@@ -22,7 +22,7 @@ namespace DeviceServiceManager.Repositories
         /// <summary>
         /// Retrieves the highest existing customer number from the database.
         /// </summary>
-        /// <returns>The highest customer number as an integer, or 999 if no customers exist.</returns>
+        /// <returns> The highest customer number as an integer, or 999 if no customers exist.</returns>
         public async Task<int> GetMaxCustomerNumberAsync(MySqlConnection connection, MySqlTransaction transaction)
         {
             // CAST ensures that we sort mathematically, not alphabetically (string)
@@ -83,6 +83,37 @@ namespace DeviceServiceManager.Repositories
                 throw new Exception("Database error occurred while inserting the customer.", ex);
             }
         }
+
+        /// <summary>
+        /// Updates an existing customer in the database.
+        /// </summary>
+        public async Task UpdateAsync(Customer customer, MySqlConnection connection, MySqlTransaction transaction)
+        {
+            string query = @"UPDATE kunden 
+                             SET name = @Name, ansprechpartner = @ContactPerson, 
+                                 email = @Email, telefon = @Phone
+                             WHERE id = @Id;";
+
+            try
+            {
+                using (var command = new MySqlCommand(query, connection, transaction))
+                {
+                    command.Parameters.Add("@Id", MySqlDbType.Int32).Value = customer.Id;
+                    command.Parameters.Add("@Name", MySqlDbType.VarChar, 150).Value = customer.Name;
+
+                    command.Parameters.Add("@ContactPerson", MySqlDbType.VarChar, 100).Value = (object?)customer.ContactPerson ?? DBNull.Value;
+                    command.Parameters.Add("@Email", MySqlDbType.VarChar, 150).Value = (object?)customer.Email ?? DBNull.Value;
+                    command.Parameters.Add("@Phone", MySqlDbType.VarChar, 50).Value = (object?)customer.Phone ?? DBNull.Value;
+
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                throw new Exception("Database error occurred while updating the customer.", ex);
+            }
+        }
+
 
         /// <summary>
         /// Retrieves all customers including their billing and delivery addresses from the database.

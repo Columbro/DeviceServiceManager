@@ -123,14 +123,14 @@ namespace DeviceServiceManager.ViewModels
         {
             if (SelectedCustomer == null) return;
 
-            // 1. Validierung (Kundennummer haben wir entfernt, also prüfen wir nur noch den Firmennamen)
+            // 1. Validation
             if (string.IsNullOrWhiteSpace(SelectedCustomer.Name))
             {
                 MessageBox.Show("Bitte geben Sie einen Firmennamen ein!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // Prüfen, ob die Pflichtfelder der Rechnungsadresse ausgefüllt sind
+            // Check whether the required fields for the billing address have been filled in
             if (SelectedCustomer.BillingAddress == null ||
                 string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.Street) ||
                 string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.ZipCode) ||
@@ -142,8 +142,8 @@ namespace DeviceServiceManager.ViewModels
 
             try
             {
-                // 2. Lieferadresse klonen (Der Trick!)
-                // Wir erzeugen ein neues Adress-Objekt mit den exakten Werten der Rechnungsadresse
+                // 2. Clone the shipping address (TEMPORARY SOLUTION)
+                // We create a new address object with the exact values from the billing address
                 SelectedCustomer.DeliveryAddress = new Address
                 {
                     Street = SelectedCustomer.BillingAddress.Street,
@@ -153,14 +153,19 @@ namespace DeviceServiceManager.ViewModels
                     Country = SelectedCustomer.BillingAddress.Country
                 };
 
-                // 3. Den Service aufrufen, um alles in die Datenbank zu schreiben
-                await _customerService.CreateCustomerAsync(SelectedCustomer);
+                // 3. Call the service to write everything to the database
+                if (SelectedCustomer.Id == 0)
+                {   
+                    await _customerService.CreateCustomerAsync(SelectedCustomer);
+                    MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {SelectedCustomer.CustomerNumber}", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {  
+                    await _customerService.UpdateCustomerAsync(SelectedCustomer);
+                    MessageBox.Show("Kundenänderungen erfolgreich gespeichert!", "Update erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
 
-                // 4. Erfolgsmeldung und Aufräumen
-                MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {SelectedCustomer.CustomerNumber}",
-                                "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                
                 await LoadCustomersAsync();
 
                 SelectedCustomer = null;

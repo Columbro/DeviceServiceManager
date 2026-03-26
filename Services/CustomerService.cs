@@ -82,5 +82,46 @@ namespace DeviceServiceManager.Services
         {
             return await _customerRepository.GetAllAsync();
         }
+
+        /// <summary>
+        /// Updates an existing customer and their addresses using a database transaction.
+        /// </summary>
+        public async Task UpdateCustomerAsync(Customer customer)
+        {
+            if (customer.BillingAddress == null || customer.DeliveryAddress == null)
+            {
+                throw new ArgumentException("Billing and Delivery addresses must be provided.");
+            }
+
+            string connectionString = DatabaseConfig.GetConnectionString();
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                // START TRANSACTION
+                using (var transaction = await connection.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        // 1. Update the addresses first
+                        await _addressRepository.UpdateAsync(customer.BillingAddress, connection, transaction);
+                        await _addressRepository.UpdateAsync(customer.DeliveryAddress, connection, transaction);
+
+                        // 2. Update the customer details
+                        await _customerRepository.UpdateAsync(customer, connection, transaction);
+
+                        // COMMIT
+                        await transaction.CommitAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        // ROLLBACK on failure
+                        await transaction.RollbackAsync();
+                        throw new Exception($"Update failed and was rolled back. Reason: {ex.Message}", ex);
+                    }
+                }
+            }
+        }
     }
 }
