@@ -12,5 +12,6 @@ namespace DeviceServiceManager.Models
         public string Designation { get; set; } = string.Empty;
         public string? Type { get; set; }
         public int? MaintenanceContractId { get; set; }
+        public string Status { get; set; } = "aktiv";
     }
 }
