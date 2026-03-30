@@ -15,6 +15,7 @@ namespace DeviceServiceManager.ViewModels
     {
 
         private Customer? _selectedCustomer;
+        private Customer? _editableCustomer;
         private string _searchText = string.Empty;
         private bool _isFormVisible;
         private readonly CustomerService _customerService;
@@ -42,10 +43,50 @@ namespace DeviceServiceManager.ViewModels
                 // Show the detail form automatically when a customer is selected
                 if (_selectedCustomer != null)
                 {
-                    IsDeliveryAddressDifferent = _selectedCustomer.BillingAddress?.Street != 
-                        _selectedCustomer.DeliveryAddress?.Street;
-                    _isFormVisible = true;
+                    EditableCustomer = new Customer
+                    {
+                        Id = _selectedCustomer.Id,
+                        CustomerNumber = _selectedCustomer.CustomerNumber,
+                        Name = _selectedCustomer.Name,
+                        ContactPerson = _selectedCustomer.ContactPerson,
+                        Email = _selectedCustomer.Email,
+                        Phone = _selectedCustomer.Phone,
+                        BillingAddressId = _selectedCustomer.BillingAddressId,
+                        DeliveryAddressId = _selectedCustomer.DeliveryAddressId,
+
+                        BillingAddress = new Address
+                        {
+                            Id = _selectedCustomer.BillingAddress!.Id,
+                            Street = _selectedCustomer.BillingAddress.Street,
+                            HouseNumber = _selectedCustomer.BillingAddress.HouseNumber,
+                            ZipCode = _selectedCustomer.BillingAddress.ZipCode,
+                            City = _selectedCustomer.BillingAddress.City,
+                            Country = _selectedCustomer.BillingAddress.Country
+                        },
+                        DeliveryAddress = new Address
+                        {
+                            Id = _selectedCustomer.DeliveryAddress!.Id,
+                            Street = _selectedCustomer.DeliveryAddress.Street,
+                            HouseNumber = _selectedCustomer.DeliveryAddress.HouseNumber,
+                            ZipCode = _selectedCustomer.DeliveryAddress.ZipCode,
+                            City = _selectedCustomer.DeliveryAddress.City,
+                            Country = _selectedCustomer.DeliveryAddress.Country
+                        }
+                    };
+
+                    IsDeliveryAddressDifferent = EditableCustomer.BillingAddress.Street != EditableCustomer.DeliveryAddress.Street;
+                    IsFormVisible = true;
                 }
+            }
+        }
+
+        public Customer? EditableCustomer
+        {
+            get => _editableCustomer;
+            set
+            {
+                _editableCustomer = value;
+                OnPropertyChanged();
             }
         }
 
@@ -136,11 +177,12 @@ namespace DeviceServiceManager.ViewModels
         /// <param name="parameter">Optional command parameter.</param>
         private void ExecuteCreateNewCustomer(object? parameter)
         {
-            // Initialize a clean object with empty addresses to prevent NullReferenceExceptions in the UI binding
-            SelectedCustomer = new Customer
+            SelectedCustomer = null;
+
+            EditableCustomer = new Customer
             {
-                BillingAddress = new Address{Country = "Deutschland"},
-                DeliveryAddress = new Address { Country = "Deutschland"}
+                BillingAddress = new Address { Country = "Deutschland" },
+                DeliveryAddress = new Address { Country = "Deutschland" }
             };
 
             IsDeliveryAddressDifferent = false;
@@ -153,20 +195,20 @@ namespace DeviceServiceManager.ViewModels
         /// <param name="parameter">Optional command parameter.</param>
         private async Task ExecuteSaveCustomerAsync()
         {
-            if (SelectedCustomer == null) return;
+            if (EditableCustomer == null) return;
 
             // 1. Validation
-            if (string.IsNullOrWhiteSpace(SelectedCustomer.Name))
+            if (string.IsNullOrWhiteSpace(EditableCustomer.Name))
             {
                 MessageBox.Show("Bitte geben Sie einen Firmennamen ein!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             // Check whether the required fields for the billing address have been filled in
-            if (SelectedCustomer.BillingAddress == null ||
-                string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.Street) ||
-                string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.ZipCode) ||
-                string.IsNullOrWhiteSpace(SelectedCustomer.BillingAddress.City))
+            if (EditableCustomer.BillingAddress == null ||
+                string.IsNullOrWhiteSpace(EditableCustomer.BillingAddress.Street) ||
+                string.IsNullOrWhiteSpace(EditableCustomer.BillingAddress.ZipCode) ||
+                string.IsNullOrWhiteSpace(EditableCustomer.BillingAddress.City))
             {
                 MessageBox.Show("Bitte füllen Sie die Pflichtfelder der Rechnungsadresse (Straße, PLZ, Ort) aus!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -178,18 +220,18 @@ namespace DeviceServiceManager.ViewModels
                 if (!IsDeliveryAddressDifferent)
                 {
                     // If checkbox is NOT checked, we clone the billing address to the delivery address
-                    SelectedCustomer.DeliveryAddress!.Street = SelectedCustomer.BillingAddress!.Street;
-                    SelectedCustomer.DeliveryAddress.HouseNumber = SelectedCustomer.BillingAddress.HouseNumber;
-                    SelectedCustomer.DeliveryAddress.ZipCode = SelectedCustomer.BillingAddress.ZipCode;
-                    SelectedCustomer.DeliveryAddress.City = SelectedCustomer.BillingAddress.City;
-                    SelectedCustomer.DeliveryAddress.Country = SelectedCustomer.BillingAddress.Country;
+                    EditableCustomer.DeliveryAddress!.Street = EditableCustomer.BillingAddress!.Street;
+                    EditableCustomer.DeliveryAddress.HouseNumber = EditableCustomer.BillingAddress.HouseNumber;
+                    EditableCustomer.DeliveryAddress.ZipCode = EditableCustomer.BillingAddress.ZipCode;
+                    EditableCustomer.DeliveryAddress.City = EditableCustomer.BillingAddress.City;
+                    EditableCustomer.DeliveryAddress.Country = EditableCustomer.BillingAddress.Country;
                 }
                 else
                 {
                     // If checkbox IS checked, validate the delivery address!
-                    if (string.IsNullOrWhiteSpace(SelectedCustomer.DeliveryAddress!.Street) ||
-                        string.IsNullOrWhiteSpace(SelectedCustomer.DeliveryAddress.ZipCode) ||
-                        string.IsNullOrWhiteSpace(SelectedCustomer.DeliveryAddress.City))
+                    if (string.IsNullOrWhiteSpace(EditableCustomer.DeliveryAddress!.Street) ||
+                        string.IsNullOrWhiteSpace(EditableCustomer.DeliveryAddress.ZipCode) ||
+                        string.IsNullOrWhiteSpace(EditableCustomer.DeliveryAddress.City))
                     {
                         MessageBox.Show("Bitte füllen Sie die Pflichtfelder der abweichenden Lieferadresse aus!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
@@ -197,21 +239,21 @@ namespace DeviceServiceManager.ViewModels
                 }
 
                 // 3. Call the service to write everything to the database
-                if (SelectedCustomer.Id == 0)
+                if (EditableCustomer.Id == 0)
                 {   
-                    await _customerService.CreateCustomerAsync(SelectedCustomer);
-                    MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {SelectedCustomer.CustomerNumber}", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+                    await _customerService.CreateCustomerAsync(EditableCustomer);
+                    MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {EditableCustomer.CustomerNumber}", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {  
-                    await _customerService.UpdateCustomerAsync(SelectedCustomer);
+                    await _customerService.UpdateCustomerAsync(EditableCustomer);
                     MessageBox.Show("Kundenänderungen erfolgreich gespeichert!", "Update erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
 
                 await LoadCustomersAsync();
 
-                SelectedCustomer = null;
+                EditableCustomer = null;
                 IsFormVisible = false;
             }
             catch (Exception ex)
@@ -228,6 +270,7 @@ namespace DeviceServiceManager.ViewModels
         {
             // Discard and hide form
             SelectedCustomer = null;
+            EditableCustomer = null;
             IsFormVisible = false;
         }
 

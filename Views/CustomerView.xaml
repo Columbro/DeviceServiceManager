@@ -207,7 +207,7 @@
             </Grid>
         </Border>
 
-        <!-- RECHTE SEITE: KUNDENDETAILS (Nutzt nun den AnimatedFormStyle!) -->
+        <!-- RECHTE SEITE: KUNDENDETAILS -->
         <Border Grid.Column="2" Background="White" CornerRadius="8" Padding="25" Style="{StaticResource AnimatedFormStyle}">
             <Border.Effect>
                 <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
@@ -223,7 +223,7 @@
                 <TextBlock Grid.Row="0" Text="Kundendetails" FontSize="20" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20"/>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
-                    <StackPanel DataContext="{Binding SelectedCustomer}">
+                    <StackPanel DataContext="{Binding EditableCustomer}">
 
                         <TextBlock Text="STAMMDATEN" FontSize="12" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
 

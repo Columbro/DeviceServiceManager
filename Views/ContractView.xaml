@@ -208,14 +208,10 @@
                                 <ColumnDefinition Width="15"/>
                                 <ColumnDefinition Width="2*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Vertragsnummer *" Foreground="#34495E" FontSize="13"/>
-                                <TextBox Text="{Binding ContractNumber}"/>
-                            </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Kunde (Zuweisung) *" Foreground="#34495E" FontSize="13"/>
 
-                                <!-- DIE MAGISCHE SUCHBARE COMBOBOX -->
+                                <!-- SUCHBARE COMBOBOX -->
                                 <ComboBox IsEditable="True" IsTextSearchEnabled="True" 
                                           ItemsSource="{Binding DataContext.AvailableCustomers, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                           DisplayMemberPath="Name" 

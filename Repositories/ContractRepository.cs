@@ -135,5 +135,26 @@ namespace DeviceServiceManager.Repositories
                 throw new Exception("Database error occurred while updating the contract.", ex);
             }
         }
+
+        /// <summary>
+        /// Retrieves the highest contract number (numeric part) inside the current transaction.
+        /// Assumes contract numbers are formatted like "V-1000".
+        /// </summary>
+        public async Task<int> GetMaxContractNumberAsync(MySqlConnection connection, MySqlTransaction transaction)
+        {
+            // We use SUBSTRING to cut off the "V-" and only get the numeric part.
+            string query = "SELECT MAX(CAST(SUBSTRING(vertragsnummer, 3) AS UNSIGNED)) FROM wartungsvertraege FOR UPDATE";
+
+            using (var command = new MySqlCommand(query, connection, transaction))
+            {
+                var result = await command.ExecuteScalarAsync();
+
+                if (result == DBNull.Value || result == null)
+                {
+                    return 999;
+                }
+                return Convert.ToInt32(result);
+            }
+        }
     }
 }
