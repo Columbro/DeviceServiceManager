@@ -10,5 +10,19 @@ namespace DeviceServiceManager.Models
         public string City { get; set; } = string.Empty;
         public string Country { get; set; } = "Deutschland";
         public DateTime CreatedAt { get; set; }
+
+        public Address Clone()
+        {
+            return new Address
+            {
+                Id = this.Id,
+                Street = this.Street,
+                HouseNumber = this.HouseNumber,
+                ZipCode = this.ZipCode,
+                City = this.City,
+                Country = this.Country,
+                CreatedAt = this.CreatedAt
+            };
+        }
     }
 }

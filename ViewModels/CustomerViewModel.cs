@@ -1,6 +1,6 @@
 ﻿using DeviceServiceManager.Core;
 using DeviceServiceManager.Models;
-using DeviceServiceManager.Services; 
+using DeviceServiceManager.Services;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -13,20 +13,32 @@ namespace DeviceServiceManager.ViewModels
     /// </summary>
     public class CustomerViewModel : ObservableObject
     {
+        private readonly CustomerService _customerService;
+        private readonly IDialogService _dialogService;
 
         private Customer? _selectedCustomer;
         private Customer? _editableCustomer;
+
         private string _searchText = string.Empty;
         private bool _isFormVisible;
-        private readonly CustomerService _customerService;
-        private List<Customer> _allCustomersCache = new();
         private bool _isDeliveryAddressDifferent;
+        private List<Customer> _allCustomersCache = new();
+        private ObservableCollection<Customer> _customers = new();
 
         /// <summary>
         /// Gets the collection of customers displayed in the list (Master).
         /// ObservableCollection ensures the UI updates when items are added/removed.
         /// </summary>
-        public ObservableCollection<Customer> Customers { get; }
+
+        public ObservableCollection<Customer> Customers
+        {
+            get => _customers;
+            set
+            {
+                _customers = value;
+                OnPropertyChanged();
+            }
+        }
 
         /// <summary>
         /// Gets or sets the currently selected customer in the list.
@@ -40,45 +52,17 @@ namespace DeviceServiceManager.ViewModels
                 _selectedCustomer = value;
                 OnPropertyChanged();
 
-                // Show the detail form automatically when a customer is selected
                 if (_selectedCustomer != null)
                 {
-                    EditableCustomer = new Customer
-                    {
-                        Id = _selectedCustomer.Id,
-                        CustomerNumber = _selectedCustomer.CustomerNumber,
-                        Name = _selectedCustomer.Name,
-                        ContactPerson = _selectedCustomer.ContactPerson,
-                        Email = _selectedCustomer.Email,
-                        Phone = _selectedCustomer.Phone,
-                        BillingAddressId = _selectedCustomer.BillingAddressId,
-                        DeliveryAddressId = _selectedCustomer.DeliveryAddressId,
+                    EditableCustomer = _selectedCustomer.Clone();
 
-                        BillingAddress = new Address
-                        {
-                            Id = _selectedCustomer.BillingAddress!.Id,
-                            Street = _selectedCustomer.BillingAddress.Street,
-                            HouseNumber = _selectedCustomer.BillingAddress.HouseNumber,
-                            ZipCode = _selectedCustomer.BillingAddress.ZipCode,
-                            City = _selectedCustomer.BillingAddress.City,
-                            Country = _selectedCustomer.BillingAddress.Country
-                        },
-                        DeliveryAddress = new Address
-                        {
-                            Id = _selectedCustomer.DeliveryAddress!.Id,
-                            Street = _selectedCustomer.DeliveryAddress.Street,
-                            HouseNumber = _selectedCustomer.DeliveryAddress.HouseNumber,
-                            ZipCode = _selectedCustomer.DeliveryAddress.ZipCode,
-                            City = _selectedCustomer.DeliveryAddress.City,
-                            Country = _selectedCustomer.DeliveryAddress.Country
-                        }
-                    };
-
-                    IsDeliveryAddressDifferent = EditableCustomer.BillingAddress.Street != EditableCustomer.DeliveryAddress.Street;
+                    IsDeliveryAddressDifferent = EditableCustomer.BillingAddress?.Street != EditableCustomer.DeliveryAddress?.Street;
                     IsFormVisible = true;
                 }
             }
         }
+
+
 
         public Customer? EditableCustomer
         {
@@ -114,7 +98,6 @@ namespace DeviceServiceManager.ViewModels
             {
                 _searchText = value;
                 OnPropertyChanged();
-                
                 ApplySearchFilter();
             }
         }
@@ -159,7 +142,8 @@ namespace DeviceServiceManager.ViewModels
         public CustomerViewModel()
         {
             _customerService = new CustomerService();
-            Customers = new ObservableCollection<Customer>();
+            _dialogService = new WpfDialogService();
+
             IsFormVisible = false;
 
             // Initialize Commands
@@ -200,7 +184,7 @@ namespace DeviceServiceManager.ViewModels
             // 1. Validation
             if (string.IsNullOrWhiteSpace(EditableCustomer.Name))
             {
-                MessageBox.Show("Bitte geben Sie einen Firmennamen ein!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _dialogService.ShowWarning("Bitte geben Sie einen Firmennamen ein!", "Fehlende Daten");
                 return;
             }
 
@@ -210,7 +194,7 @@ namespace DeviceServiceManager.ViewModels
                 string.IsNullOrWhiteSpace(EditableCustomer.BillingAddress.ZipCode) ||
                 string.IsNullOrWhiteSpace(EditableCustomer.BillingAddress.City))
             {
-                MessageBox.Show("Bitte füllen Sie die Pflichtfelder der Rechnungsadresse (Straße, PLZ, Ort) aus!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _dialogService.ShowWarning("Bitte füllen Sie die Pflichtfelder der Rechnungsadresse aus!", "Fehlende Daten"); 
                 return;
             }
 
@@ -220,11 +204,8 @@ namespace DeviceServiceManager.ViewModels
                 if (!IsDeliveryAddressDifferent)
                 {
                     // If checkbox is NOT checked, we clone the billing address to the delivery address
-                    EditableCustomer.DeliveryAddress!.Street = EditableCustomer.BillingAddress!.Street;
-                    EditableCustomer.DeliveryAddress.HouseNumber = EditableCustomer.BillingAddress.HouseNumber;
-                    EditableCustomer.DeliveryAddress.ZipCode = EditableCustomer.BillingAddress.ZipCode;
-                    EditableCustomer.DeliveryAddress.City = EditableCustomer.BillingAddress.City;
-                    EditableCustomer.DeliveryAddress.Country = EditableCustomer.BillingAddress.Country;
+                    EditableCustomer.DeliveryAddress = EditableCustomer.BillingAddress.Clone();
+                    EditableCustomer.DeliveryAddress.Id = _selectedCustomer?.DeliveryAddressId ?? 0;
                 }
                 else
                 {
@@ -233,21 +214,21 @@ namespace DeviceServiceManager.ViewModels
                         string.IsNullOrWhiteSpace(EditableCustomer.DeliveryAddress.ZipCode) ||
                         string.IsNullOrWhiteSpace(EditableCustomer.DeliveryAddress.City))
                     {
-                        MessageBox.Show("Bitte füllen Sie die Pflichtfelder der abweichenden Lieferadresse aus!", "Fehlende Daten", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        _dialogService.ShowWarning("Bitte füllen Sie die Pflichtfelder der abweichenden Lieferadresse aus!", "Fehlende Daten");
                         return;
                     }
                 }
 
                 // 3. Call the service to write everything to the database
                 if (EditableCustomer.Id == 0)
-                {   
+                {
                     await _customerService.CreateCustomerAsync(EditableCustomer);
-                    MessageBox.Show($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {EditableCustomer.CustomerNumber}", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _dialogService.ShowMessage($"Kunde erfolgreich angelegt!\nDie generierte Kundennummer lautet: {EditableCustomer.CustomerNumber}", "Erfolg");
                 }
                 else
-                {  
+                {
                     await _customerService.UpdateCustomerAsync(EditableCustomer);
-                    MessageBox.Show("Kundenänderungen erfolgreich gespeichert!", "Update erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _dialogService.ShowMessage("Kundenänderungen erfolgreich gespeichert!", "Update erfolgreich");
                 }
 
 
@@ -258,7 +239,7 @@ namespace DeviceServiceManager.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fehler beim Speichern in die Datenbank:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowError($"Fehler beim Speichern:\n{ex.Message}", "Datenbankfehler");
             }
         }
 
@@ -287,7 +268,7 @@ namespace DeviceServiceManager.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Fehler beim Laden der Kundenliste:\n{ex.Message}", "Datenbankfehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowError($"Fehler beim Laden der Kundenliste:\n{ex.Message}", "Datenbankfehler");
             }
         }
 
@@ -296,19 +277,15 @@ namespace DeviceServiceManager.ViewModels
         /// </summary>
         private void ApplySearchFilter()
         {
-            Customers.Clear();
+            var filteredList = string.IsNullOrWhiteSpace(SearchText)
+                ? _allCustomersCache
+                : _allCustomersCache.Where(c =>
+                    c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    c.CustomerNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    (c.ContactPerson != null && c.ContactPerson.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
 
-            foreach (var customer in _allCustomersCache)
-            {
-                // If search is empty, show all. Otherwise check if Name, CustomerNumber or ContactPerson contains the text.
-                if (string.IsNullOrWhiteSpace(SearchText) ||
-                    customer.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    customer.CustomerNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    (customer.ContactPerson != null && customer.ContactPerson.Contains(SearchText, StringComparison.OrdinalIgnoreCase)))
-                {
-                    Customers.Add(customer);
-                }
-            }
+            Customers = new ObservableCollection<Customer>(filteredList);
         }
     }
 }

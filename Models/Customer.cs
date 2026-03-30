@@ -20,5 +20,25 @@ namespace DeviceServiceManager.Models
         public Address? DeliveryAddress { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public Customer Clone()
+        {
+            return new Customer
+            {
+                Id = this.Id,
+                CustomerNumber = this.CustomerNumber,
+                Name = this.Name,
+                ContactPerson = this.ContactPerson,
+                Email = this.Email,
+                Phone = this.Phone,
+                BillingAddressId = this.BillingAddressId,
+                DeliveryAddressId = this.DeliveryAddressId,
+                CreatedAt = this.CreatedAt,
+
+                // Deep Copy der Referenzobjekte!
+                BillingAddress = this.BillingAddress?.Clone(),
+                DeliveryAddress = this.DeliveryAddress?.Clone()
+            };
+        }
     }
 }
