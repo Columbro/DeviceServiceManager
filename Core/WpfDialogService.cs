@@ -18,5 +18,11 @@ namespace DeviceServiceManager.Core
         {
             MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+
+        public bool ShowConfirmation(string message, string title)
+        {
+            var result = MessageBox.Show(message, title, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            return result == MessageBoxResult.Yes;
+        }
     }
 }

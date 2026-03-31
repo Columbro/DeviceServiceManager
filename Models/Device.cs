@@ -13,5 +13,19 @@ namespace DeviceServiceManager.Models
         public string? Type { get; set; }
         public int? MaintenanceContractId { get; set; }
         public string Status { get; set; } = "aktiv";
+
+        public Device Clone()
+        {
+            return new Device
+            {
+                Id = this.Id,
+                SerialNumber = this.SerialNumber,
+                Manufacturer = this.Manufacturer,
+                Designation = this.Designation,
+                Type = this.Type,
+                MaintenanceContractId = this.MaintenanceContractId,
+                Status = this.Status
+            };
+        }
     }
 }

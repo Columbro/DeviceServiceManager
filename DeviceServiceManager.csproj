@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <None Remove="Assets\dashboard_icon.png" />
+    <None Remove="Assets\delete_icon.png" />
     <None Remove="Assets\docs_icon.png" />
     <None Remove="Assets\person_icon.png" />
     <None Remove="Assets\search_icon.png" />
@@ -29,6 +30,7 @@
 
   <ItemGroup>
     <Resource Include="Assets\dashboard_icon.png" />
+    <Resource Include="Assets\delete_icon.png" />
     <Resource Include="Assets\docs_icon.png" />
     <Resource Include="Assets\person_icon.png" />
     <Resource Include="Assets\search_icon.png" />

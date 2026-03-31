@@ -1,4 +1,6 @@
 ﻿
+using System.Collections.ObjectModel;
+
 namespace DeviceServiceManager.Models
 {
     public class MaintenanceContract
@@ -12,7 +14,7 @@ namespace DeviceServiceManager.Models
         public string? Remarks { get; set; }
 
         public Customer? Customer { get; set; }
-        public List<Device> CoveredDevices { get; set; } = new List<Device>();
+        public ObservableCollection<Device> CoveredDevices { get; set; } = new ();
 
         /// <summary>
         /// Creates a deep copy of the contract to prevent phantom UI updates.
@@ -21,7 +23,7 @@ namespace DeviceServiceManager.Models
         /// <returns>A cloned MaintenanceContract object.</returns>
         public MaintenanceContract Clone()
         {
-            return new MaintenanceContract
+            var clone = new MaintenanceContract
             {
                 Id = this.Id,
                 ContractNumber = this.ContractNumber,
@@ -30,13 +32,15 @@ namespace DeviceServiceManager.Models
                 EndDate = this.EndDate,
                 Status = this.Status,
                 Remarks = this.Remarks,
-
-                // Deep Copy of the Customer object using its own Clone method
-                Customer = this.Customer?.Clone(),
-
-                // Shallow copy of the devices list
-                CoveredDevices = new List<Device>(this.CoveredDevices)
+                Customer = this.Customer?.Clone()
             };
+
+            foreach (var device in this.CoveredDevices)
+            {
+                clone.CoveredDevices.Add(device.Clone());
+            }
+
+            return clone;
         }
     }
 }

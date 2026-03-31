@@ -256,19 +256,98 @@
 
                         <Separator Margin="0,10,0,20" Background="#EEEEEE"/>
 
-                        <!-- GERÄTE MANAGEMENT (Hier kommen im nächsten Schritt die Geräte rein!) -->
-                        <TextBlock Text="ABGEDECKTE GERÄTE (Demnächst...)" FontSize="12" FontWeight="Bold" Foreground="#3498DB" Margin="0,0,0,10"/>
+                        <!-- GERÄTE MANAGEMENT -->
+                        <Grid Margin="0,0,0,10">
+                            <!-- Titel links -->
+                            <TextBlock Text="ABGEDECKTE GERÄTE" FontSize="12" FontWeight="Bold" Foreground="#95A5A6" VerticalAlignment="Center"/>
 
-                        <DataGrid ItemsSource="{Binding CoveredDevices}" AutoGenerateColumns="False" IsReadOnly="True" 
-                                  HeadersVisibility="Column" Background="#FAFAFA" BorderBrush="#E0E0E0" Height="150" Margin="0,0,0,10">
+                            <!-- Suchfeld für Geräte (rechtsbündig) -->
+                            <Grid Width="200" HorizontalAlignment="Right">
+                                <TextBox Padding="5,4,25,4" Margin="0" Text="{Binding DataContext.DeviceSearchText, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}" Background="#FAFAFA" FontSize="12"/>
+                                <Image Source="/Assets/search_icon.png" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" IsHitTestVisible="False" Opacity="0.4"/>
+                            </Grid>
+                        </Grid>
+
+                        <DataGrid ItemsSource="{Binding DataContext.DevicesView, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                  AutoGenerateColumns="False" IsReadOnly="False" 
+                                  CanUserAddRows="False" CanUserDeleteRows="False" 
+                                  HeadersVisibility="Column" Background="#FAFAFA" BorderBrush="#E0E0E0" Height="220" Margin="0,0,0,10">
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="defekt">
+                                            <Setter Property="Background" Value="#FFF5F5"/>
+                                            <Setter Property="Foreground" Value="#C0392B"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="inaktiv">
+                                            <Setter Property="Background" Value="#F8F9FA"/>
+                                            <Setter Property="Foreground" Value="#95A5A6"/>
+                                        </DataTrigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#F1F2F6"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Seriennummer" Binding="{Binding SerialNumber}" Width="*"/>
-                                <DataGridTextColumn Header="Hersteller" Binding="{Binding Manufacturer}" Width="Auto"/>
-                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
+                                <!-- Die Texte teilen sich den restlichen Platz fair auf (*) -->
+                                <DataGridTextColumn Header="Seriennummer *" Binding="{Binding SerialNumber, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                <DataGridTextColumn Header="Hersteller *" Binding="{Binding Manufacturer, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+
+                                <!-- Status bekommt feste 80 Pixel -->
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" IsReadOnly="True" Foreground="#7F8C8D" FontWeight="SemiBold"/>
+
+                                <!-- Der Defekt-Button bekommt feste 110 Pixel, damit er nie gequetscht wird -->
+                                <DataGridTemplateColumn Width="110">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Defekt melden" 
+                                                    Command="{Binding DataContext.MarkDeviceDefectiveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                    CommandParameter="{Binding}" 
+                                                    Background="Transparent" Foreground="#E74C3C" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="defekt">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Status}" Value="inaktiv">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Der Papierkorb bekommt feste 45 Pixel -->
+                                <DataGridTemplateColumn Width="45">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.RemoveDeviceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                                    CommandParameter="{Binding}" 
+                                                    ToolTip="Gerät aus Vertrag entfernen"
+                                                    Background="Transparent" BorderThickness="0" Cursor="Hand">
+
+                                                <Image Source="/Assets/delete_icon.png" Width="16" Height="16" Opacity="0.6"/>
+
+                                            </Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
 
-                        <Button Content="+ Gerät zum Vertrag hinzufügen" Background="White" Foreground="#3498DB" BorderBrush="#3498DB" BorderThickness="1" 
+                        <Button Content="+ Neues Gerät eintragen" 
+                                Command="{Binding DataContext.AddDeviceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                Background="White" Foreground="#3498DB" BorderBrush="#3498DB" BorderThickness="1" 
                                 Cursor="Hand" Padding="10,5" HorizontalAlignment="Left" FontWeight="SemiBold"/>
 
                     </StackPanel>

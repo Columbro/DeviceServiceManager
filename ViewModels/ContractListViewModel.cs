@@ -1,11 +1,9 @@
 ﻿using DeviceServiceManager.Core;
 using DeviceServiceManager.Models;
 using DeviceServiceManager.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace DeviceServiceManager.ViewModels
@@ -20,6 +18,9 @@ namespace DeviceServiceManager.ViewModels
         private readonly CustomerService _customerService;
         private readonly IDialogService _dialogService;
 
+        private string _deviceSearchText = string.Empty;
+        private ICollectionView? _devicesView;
+
         private MaintenanceContract? _selectedContract;
         private MaintenanceContract? _editableContract;
         private bool _isFormVisible;
@@ -27,6 +28,7 @@ namespace DeviceServiceManager.ViewModels
         private List<MaintenanceContract> _allContractsCache = new();
 
         private ObservableCollection<MaintenanceContract> _contracts = new();
+
 
         /// <summary>
         /// Gets or sets the collection of contracts bound to the Master DataGrid.
@@ -63,6 +65,9 @@ namespace DeviceServiceManager.ViewModels
                     // Create a deep copy to prevent the UI from updating instantly before saving
                     EditableContract = _selectedContract.Clone();
                     IsFormVisible = true;
+                    DeviceSearchText = string.Empty;
+                    DevicesView = CollectionViewSource.GetDefaultView(EditableContract.CoveredDevices);
+                    DevicesView.Filter = FilterDevices;
                 }
             }
         }
@@ -108,16 +113,46 @@ namespace DeviceServiceManager.ViewModels
             }
         }
 
+        public string DeviceSearchText
+        {
+            get => _deviceSearchText;
+            set
+            {
+                _deviceSearchText = value;
+                OnPropertyChanged();
+                DevicesView?.Refresh();
+            }
+        }
+
+        public ICollectionView? DevicesView
+        {
+            get => _devicesView;
+            set
+            {
+                _devicesView = value;
+                OnPropertyChanged();
+            }
+        }
+
         // --- Commands ---
 
-        /// <summary>Command to initialize the creation of a new maintenance contract.</summary>
+        /// <summary> Command to initialize the creation of a new maintenance contract.</summary>
         public ICommand CreateNewContractCommand { get; }
 
-        /// <summary>Command to validate and persist the currently edited contract.</summary>
+        /// <summary> Command to validate and persist the currently edited contract.</summary>
         public ICommand SaveContractCommand { get; }
 
-        /// <summary>Command to discard changes and close the detail form.</summary>
+        /// <summary> Command to discard changes and close the detail form.</summary>
         public ICommand CancelCommand { get; }
+
+        /// <summary> Command to add a new device into the contract. </summary>
+        public ICommand AddDeviceCommand { get; }
+
+        /// <summary> Command to mark a device as defect. </summary>
+        public ICommand MarkDeviceDefectiveCommand { get; }
+
+        /// <summary> Command to actually delete a device. </summary>
+        public ICommand RemoveDeviceCommand { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ContractListViewModel"/> class.
@@ -135,6 +170,9 @@ namespace DeviceServiceManager.ViewModels
             CreateNewContractCommand = new RelayCommand(ExecuteCreateNewContract);
             SaveContractCommand = new RelayCommand(async _ => await ExecuteSaveContractAsync());
             CancelCommand = new RelayCommand(ExecuteCancel);
+            AddDeviceCommand = new RelayCommand(ExecuteAddDevice);
+            MarkDeviceDefectiveCommand = new RelayCommand(ExecuteMarkDeviceDefective);
+            RemoveDeviceCommand = new RelayCommand(ExecuteRemoveDevice);
 
             // Execute the initial data load as a fire-and-forget background task
             _ = LoadInitialDataAsync();
@@ -222,6 +260,24 @@ namespace DeviceServiceManager.ViewModels
                 return;
             }
 
+            if (EditableContract.CoveredDevices.Any(d => string.IsNullOrWhiteSpace(d.SerialNumber) || string.IsNullOrWhiteSpace(d.Manufacturer)))
+            {
+                _dialogService.ShowWarning("Bitte füllen Sie bei allen Geräten die Pflichtfelder (Seriennummer und Hersteller) aus oder löschen Sie leere Zeilen!", "Validierungsfehler");
+                return;
+            }
+
+            var duplicateSerials = EditableContract.CoveredDevices
+                .GroupBy(d => d.SerialNumber)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicateSerials.Any())
+            {
+                _dialogService.ShowWarning($"Seriennummern müssen eindeutig sein. Folgende Duplikate wurden gefunden:\n{string.Join(", ", duplicateSerials)}", "Duplikate erkannt");
+                return;
+            }
+
             try
             {
                 if (EditableContract.Id == 0)
@@ -259,6 +315,90 @@ namespace DeviceServiceManager.ViewModels
             SelectedContract = null;
             EditableContract = null;
             IsFormVisible = false;
+        }
+
+        /// <summary>
+        /// Adds a new, empty device to the current contract form.
+        /// The user can edit the details directly in the DataGrid (Inline-Editing).
+        /// </summary>
+        private void ExecuteAddDevice(object? parameter)
+        {
+            if (EditableContract != null)
+            {
+                EditableContract.CoveredDevices.Add(new Device
+                {
+                    Status = "aktiv"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Marks a specific device as defective.
+        /// Changes the status, triggering the UI color change automatically.
+        /// </summary>
+        private void ExecuteMarkDeviceDefective(object? parameter)
+        {
+            if (parameter is Device device)
+            {
+                // Soft-Delete: We don't remove it, we just change the status
+                device.Status = "defekt";
+
+                // Da der Status eine normale Property ist (ohne INotifyPropertyChanged in der Device Klasse),
+                // müssen wir dem DataGrid kurz einen kleinen "Stupser" geben, damit es sich neu zeichnet.
+                // Das machen wir, indem wir die Liste kurz aktualisieren.
+                var tempList = EditableContract!.CoveredDevices.ToList();
+                EditableContract.CoveredDevices.Clear();
+                foreach (var d in tempList) EditableContract.CoveredDevices.Add(d);
+            }
+        }
+
+        /// <summary>
+        /// Filter logic for the Device Sub-Grid.
+        /// </summary>
+        private bool FilterDevices(object item)
+        {
+            if (item is Device device)
+            {
+                if (string.IsNullOrWhiteSpace(device.SerialNumber) && device.Id == 0) return true;
+
+                if (string.IsNullOrWhiteSpace(DeviceSearchText)) return true;
+
+                return device.SerialNumber.Contains(DeviceSearchText, StringComparison.OrdinalIgnoreCase) ||
+                       device.Manufacturer.Contains(DeviceSearchText, StringComparison.OrdinalIgnoreCase);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Removes a device from the contract.
+        /// Unsaved devices are removed instantly. Persisted devices require a strict confirmation.
+        /// </summary>
+        private void ExecuteRemoveDevice(object? parameter)
+        {
+            if (parameter is Device device && EditableContract != null)
+            {
+                if (device.Id == 0)
+                {
+                    // Gerät wurde gerade erst per "+ Neu" geklickt und ist noch nicht in der DB. Direkt weg damit!
+                    EditableContract.CoveredDevices.Remove(device);
+                }
+                else
+                {
+                    // Gerät existiert schon in der DB! Fette Warnung anzeigen!
+                    bool userConfirmed = _dialogService.ShowConfirmation(
+                        "Möchten Sie dieses Gerät wirklich komplett aus dem Vertrag entfernen?\n\n" +
+                        "Hinweis: Wenn das Gerät kaputt ist, sollten Sie stattdessen auf 'Defekt melden' klicken, um die Historie zu wahren!",
+                        "Gerät wirklich löschen?");
+
+                    if (userConfirmed)
+                    {
+                        EditableContract.CoveredDevices.Remove(device);
+                    }
+                }
+
+                // Ansicht aktualisieren
+                DevicesView?.Refresh();
+            }
         }
     }
 }
