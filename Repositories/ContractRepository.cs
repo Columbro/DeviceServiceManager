@@ -153,7 +153,10 @@ namespace DeviceServiceManager.Repositories
                 {
                     return 999;
                 }
-                return Convert.ToInt32(result);
+
+                int dbMax = Convert.ToInt32(result);
+
+                return Math.Max(999, dbMax);
             }
         }
     }

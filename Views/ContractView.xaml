@@ -197,7 +197,7 @@
                 <TextBlock Grid.Row="0" Text="Vertragsdetails bearbeiten" FontSize="20" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20"/>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
-                    <StackPanel DataContext="{Binding SelectedContract}">
+                    <StackPanel DataContext="{Binding EditableContract}">
 
                         <!-- VERTRAGSKOPF -->
                         <TextBlock Text="KOPFDATEN" FontSize="12" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
@@ -216,7 +216,7 @@
                                           ItemsSource="{Binding DataContext.AvailableCustomers, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                           DisplayMemberPath="Name" 
                                           SelectedValuePath="Id" 
-                                          SelectedValue="{Binding CustomerId}" 
+                                          SelectedValue="{Binding CustomerId, UpdateSourceTrigger=PropertyChanged}" 
                                           Margin="0,5,0,15" Padding="5"/>
                             </StackPanel>
                         </Grid>

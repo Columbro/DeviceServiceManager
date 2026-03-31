@@ -1,9 +1,6 @@
 ﻿
 namespace DeviceServiceManager.Models
 {
-    /// <summary>
-    /// Represents a maintenance contract that belongs to a customer and covers multiple devices.
-    /// </summary>
     public class MaintenanceContract
     {
         public int Id { get; set; }
@@ -14,17 +11,32 @@ namespace DeviceServiceManager.Models
         public string Status { get; set; } = "aktiv";
         public string? Remarks { get; set; }
 
-        // --- Navigation Properties ---
-
-        /// <summary>
-        /// The customer object associated with this contract.
-        /// Useful for displaying the customer's name in the contract line.
-        /// </summary>
         public Customer? Customer { get; set; }
+        public List<Device> CoveredDevices { get; set; } = new List<Device>();
 
         /// <summary>
-        /// A list of devices covered by this specific contract.
+        /// Creates a deep copy of the contract to prevent phantom UI updates.
+        /// Ensure ALL properties (especially the Id) are mapped correctly!
         /// </summary>
-        public List<Device> CoveredDevices { get; set; } = new List<Device>();
+        /// <returns>A cloned MaintenanceContract object.</returns>
+        public MaintenanceContract Clone()
+        {
+            return new MaintenanceContract
+            {
+                Id = this.Id,
+                ContractNumber = this.ContractNumber,
+                CustomerId = this.CustomerId,
+                StartDate = this.StartDate,
+                EndDate = this.EndDate,
+                Status = this.Status,
+                Remarks = this.Remarks,
+
+                // Deep Copy of the Customer object using its own Clone method
+                Customer = this.Customer?.Clone(),
+
+                // Shallow copy of the devices list
+                CoveredDevices = new List<Device>(this.CoveredDevices)
+            };
+        }
     }
 }

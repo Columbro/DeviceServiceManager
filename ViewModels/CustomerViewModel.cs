@@ -62,8 +62,6 @@ namespace DeviceServiceManager.ViewModels
             }
         }
 
-
-
         public Customer? EditableCustomer
         {
             get => _editableCustomer;
