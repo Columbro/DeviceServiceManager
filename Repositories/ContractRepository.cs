@@ -175,7 +175,7 @@ namespace DeviceServiceManager.Repositories
         public async Task<List<Device>> GetDevicesByContractIdAsync(int contractId)
         {
             var devices = new List<Device>();
-            string query = "SELECT id, seriennummer, hersteller, bezeichnung, typ, status FROM geraete WHERE wartungsvertrag_id = @ContractId;";
+            string query = "SELECT id, seriennummer, hersteller, typ, status FROM geraete WHERE wartungsvertrag_id = @ContractId;";
 
             using (var connection = new MySqlConnection(_connectionString))
             {
@@ -193,7 +193,6 @@ namespace DeviceServiceManager.Repositories
                                 Id = reader.GetInt32("id"),
                                 SerialNumber = reader.GetString("seriennummer"),
                                 Manufacturer = reader.GetString("hersteller"),
-                                Designation = reader.IsDBNull(reader.GetOrdinal("bezeichnung")) ? string.Empty : reader.GetString("bezeichnung"),
                                 Type = reader.IsDBNull(reader.GetOrdinal("typ")) ? null : reader.GetString("typ"),
                                 Status = reader.GetString("status"),
                                 MaintenanceContractId = contractId

@@ -379,12 +379,12 @@ namespace DeviceServiceManager.ViewModels
             {
                 if (device.Id == 0)
                 {
-                    // Gerät wurde gerade erst per "+ Neu" geklickt und ist noch nicht in der DB. Direkt weg damit!
+                    // The device was just added via “+ New” and isn't in the database yet. Can be deleted right away.
                     EditableContract.CoveredDevices.Remove(device);
                 }
                 else
                 {
-                    // Gerät existiert schon in der DB! Fette Warnung anzeigen!
+                    // The device already exists in the database! Display a bold warning!
                     bool userConfirmed = _dialogService.ShowConfirmation(
                         "Möchten Sie dieses Gerät wirklich komplett aus dem Vertrag entfernen?\n\n" +
                         "Hinweis: Wenn das Gerät kaputt ist, sollten Sie stattdessen auf 'Defekt melden' klicken, um die Historie zu wahren!",
@@ -393,11 +393,14 @@ namespace DeviceServiceManager.ViewModels
                     if (userConfirmed)
                     {
                         EditableContract.CoveredDevices.Remove(device);
+
+                        // Refresh view
+                        DevicesView?.Refresh();
                     }
                 }
 
-                // Ansicht aktualisieren
-                DevicesView?.Refresh();
+                // If the user selects 'No', we do nothing.
+
             }
         }
     }

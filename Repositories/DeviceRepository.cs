@@ -23,9 +23,9 @@ namespace DeviceServiceManager.Repositories
         public async Task<int> AddAsync(Device device, MySqlConnection connection, MySqlTransaction transaction)
         {
             string query = @"INSERT INTO geraete 
-                            (seriennummer, hersteller, bezeichnung, typ, wartungsvertrag_id, status) 
+                            (seriennummer, hersteller, typ, wartungsvertrag_id, status) 
                             VALUES 
-                            (@SerialNumber, @Manufacturer, @Designation, @Type, @ContractId, @Status);
+                            (@SerialNumber, @Manufacturer, @Type, @ContractId, @Status);
                             SELECT LAST_INSERT_ID();";
 
             try
@@ -34,10 +34,7 @@ namespace DeviceServiceManager.Repositories
                 {
                     command.Parameters.Add("@SerialNumber", MySqlDbType.VarChar, 100).Value = device.SerialNumber;
                     command.Parameters.Add("@Manufacturer", MySqlDbType.VarChar, 100).Value = device.Manufacturer;
-                    command.Parameters.Add("@Designation", MySqlDbType.VarChar, 150).Value = (object?)device.Designation ?? DBNull.Value;
                     command.Parameters.Add("@Type", MySqlDbType.VarChar, 100).Value = (object?)device.Type ?? DBNull.Value;
-
-                    // The contract ID links the device to its parent contract
                     command.Parameters.Add("@ContractId", MySqlDbType.Int32).Value = device.MaintenanceContractId;
                     command.Parameters.Add("@Status", MySqlDbType.VarChar, 20).Value = device.Status;
 

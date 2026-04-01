@@ -9,6 +9,7 @@
 
         <!-- TEXTBOX & COMBOBOX STYLE -->
         <Style TargetType="TextBox">
+            <Setter Property="Height" Value="32"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="Margin" Value="0,5,0,15"/>
             <Setter Property="BorderBrush" Value="#D1D8E0"/>
@@ -31,6 +32,26 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="0,5,0,15"/>
+            <Setter Property="Padding" Value="5,4"/>
+            <Setter Property="BorderBrush" Value="#D1D8E0"/>
+            <Setter Property="Background" Value="#FAFAFA"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- STYLE FÜR DATEPICKER -->
+        <Style TargetType="DatePicker">
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Margin" Value="0,5,0,15"/>
+            <Setter Property="BorderBrush" Value="#D1D8E0"/>
+            <Setter Property="Background" Value="#FAFAFA"/>
+            <Setter Property="Foreground" Value="#2C3E50"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
@@ -204,20 +225,27 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="15"/>
                                 <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Kunde (Zuweisung) *" Foreground="#34495E" FontSize="13"/>
 
-                                <!-- SUCHBARE COMBOBOX -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Kunde (Zuweisung) *" Foreground="#34495E" FontSize="13"/>
                                 <ComboBox IsEditable="True" IsTextSearchEnabled="True" 
                                           ItemsSource="{Binding DataContext.AvailableCustomers, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                           DisplayMemberPath="Name" 
                                           SelectedValuePath="Id" 
-                                          SelectedValue="{Binding CustomerId, UpdateSourceTrigger=PropertyChanged}" 
-                                          Margin="0,5,0,15" Padding="5"/>
+                                          SelectedValue="{Binding CustomerId, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Status" Foreground="#34495E" FontSize="13"/>
+                                <ComboBox SelectedValue="{Binding Status}" SelectedValuePath="Content">
+                                    <ComboBoxItem Content="aktiv"/>
+                                    <ComboBoxItem Content="abgelaufen"/>
+                                    <ComboBoxItem Content="gekündigt"/>
+                                </ComboBox>
                             </StackPanel>
                         </Grid>
 
@@ -229,29 +257,20 @@
                                 <ColumnDefinition Width="15"/>
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
+
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Startdatum *" Foreground="#34495E" FontSize="13"/>
-                                <!-- DatePicker für saubere Datumsauswahl -->
-                                <DatePicker SelectedDate="{Binding StartDate}" Margin="0,5,0,15" Padding="5"/>
+                                <DatePicker SelectedDate="{Binding StartDate}"/>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Enddatum *" Foreground="#34495E" FontSize="13"/>
-                                <DatePicker SelectedDate="{Binding EndDate}" Margin="0,5,0,15" Padding="5"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="4">
-                                <TextBlock Text="Status" Foreground="#34495E" FontSize="13"/>
-                                <!-- Einfaches Dropdown für Status -->
-                                <ComboBox SelectedValue="{Binding Status}" SelectedValuePath="Content" Margin="0,5,0,15" Padding="5">
-                                    <ComboBoxItem Content="aktiv"/>
-                                    <ComboBoxItem Content="abgelaufen"/>
-                                    <ComboBoxItem Content="gekündigt"/>
-                                </ComboBox>
+                                <DatePicker SelectedDate="{Binding EndDate}"/>
                             </StackPanel>
                         </Grid>
 
                         <StackPanel>
                             <TextBlock Text="Bemerkung" Foreground="#34495E" FontSize="13"/>
-                            <TextBox Text="{Binding Remarks}" Height="60" TextWrapping="Wrap" AcceptsReturn="True"/>
+                            <TextBox Text="{Binding Remarks}" Height="70" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top"/>
                         </StackPanel>
 
                         <Separator Margin="0,10,0,20" Background="#EEEEEE"/>
@@ -294,14 +313,30 @@
 
                             <DataGrid.Columns>
                                 <!-- Die Texte teilen sich den restlichen Platz fair auf (*) -->
-                                <DataGridTextColumn Header="Seriennummer *" Binding="{Binding SerialNumber, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                <DataGridTextColumn Header="Seriennummer *" Binding="{Binding SerialNumber, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
                                 <DataGridTextColumn Header="Hersteller *" Binding="{Binding Manufacturer, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Designation, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                <DataGridTextColumn Header="Typ" Binding="{Binding Type, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
 
-                                <!-- Status bekommt feste 80 Pixel -->
-                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" IsReadOnly="True" Foreground="#7F8C8D" FontWeight="SemiBold"/>
+                                <DataGridTemplateColumn Header="Status" Width="100" IsReadOnly="True">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Status}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Status}" Value="aktiv">
+                                                                <Setter Property="Foreground" Value="#27AE60"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
 
-                                <!-- Der Defekt-Button bekommt feste 110 Pixel, damit er nie gequetscht wird -->
+                                <!-- DER DEFEKT-BUTTON (Der vorhin versehentlich gelöscht wurde!) -->
                                 <DataGridTemplateColumn Width="110">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>

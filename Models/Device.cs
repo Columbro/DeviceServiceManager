@@ -9,7 +9,6 @@ namespace DeviceServiceManager.Models
         public int Id { get; set; }
         public string SerialNumber { get; set; } = string.Empty;
         public string Manufacturer { get; set; } = string.Empty;
-        public string Designation { get; set; } = string.Empty;
         public string? Type { get; set; }
         public int? MaintenanceContractId { get; set; }
         public string Status { get; set; } = "aktiv";
@@ -21,7 +20,6 @@ namespace DeviceServiceManager.Models
                 Id = this.Id,
                 SerialNumber = this.SerialNumber,
                 Manufacturer = this.Manufacturer,
-                Designation = this.Designation,
                 Type = this.Type,
                 MaintenanceContractId = this.MaintenanceContractId,
                 Status = this.Status
