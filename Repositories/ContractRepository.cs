@@ -65,6 +65,15 @@ namespace DeviceServiceManager.Repositories
                 }
             }
 
+            foreach (var contract in contracts)
+            {
+                var devices = await GetDevicesByContractIdAsync(contract.Id);
+                foreach (var device in devices)
+                {
+                    contract.CoveredDevices.Add(device);
+                }
+            }
+
             return contracts;
         }
 
@@ -158,6 +167,42 @@ namespace DeviceServiceManager.Repositories
 
                 return Math.Max(999, dbMax);
             }
+        }
+
+        /// <summary>
+        /// Retrieves all devices associated with a specific maintenance contract.
+        /// </summary>
+        public async Task<List<Device>> GetDevicesByContractIdAsync(int contractId)
+        {
+            var devices = new List<Device>();
+            string query = "SELECT id, seriennummer, hersteller, bezeichnung, typ, status FROM geraete WHERE wartungsvertrag_id = @ContractId;";
+
+            using (var connection = new MySqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                using (var command = new MySqlCommand(query, connection))
+                {
+                    command.Parameters.Add("@ContractId", MySqlDbType.Int32).Value = contractId;
+
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            devices.Add(new Device
+                            {
+                                Id = reader.GetInt32("id"),
+                                SerialNumber = reader.GetString("seriennummer"),
+                                Manufacturer = reader.GetString("hersteller"),
+                                Designation = reader.IsDBNull(reader.GetOrdinal("bezeichnung")) ? string.Empty : reader.GetString("bezeichnung"),
+                                Type = reader.IsDBNull(reader.GetOrdinal("typ")) ? null : reader.GetString("typ"),
+                                Status = reader.GetString("status"),
+                                MaintenanceContractId = contractId
+                            });
+                        }
+                    }
+                }
+            }
+            return devices;
         }
     }
 }

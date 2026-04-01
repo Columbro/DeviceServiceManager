@@ -12,10 +12,12 @@ namespace DeviceServiceManager.Services
     public class ContractService
     {
         private readonly ContractRepository _contractRepository;
+        private readonly DeviceRepository _deviceRepository;
 
         public ContractService()
         {
             _contractRepository = new ContractRepository();
+            _deviceRepository = new DeviceRepository();
         }
 
         /// <summary>
@@ -48,20 +50,31 @@ namespace DeviceServiceManager.Services
                     {
                         if (contract.Id == 0)
                         {
-                            // INSERT
+                            // INSERT contract
                             int currentMax = await _contractRepository.GetMaxContractNumberAsync(connection, transaction);
                             contract.ContractNumber = $"V-{currentMax + 1}";
-
                             contract.Id = await _contractRepository.AddAsync(contract, connection, transaction);
                         }
                         else
                         {
-                            // UPDATE
+                            // UPDATE contract
                             await _contractRepository.UpdateAsync(contract, connection, transaction);
+
+                            // BULK REPLACE: Delete all old devices from the database
+                            await _deviceRepository.DeleteByContractIdAsync(contract.Id, connection, transaction);
                         }
 
-                        // TODO (Später): Hier werden wir in einer Schleife alle zugeordneten Geräte (Devices) in die DB speichern!
+                        // Save the current list of devices from the form to the database
+                        foreach (var device in contract.CoveredDevices)
+                        {
+                            // Require the foreign key to be set to the current contract ID
+                            device.MaintenanceContractId = contract.Id;
 
+                            // Insert a new device (The database generates a new auto-increment ID)
+                            await _deviceRepository.AddAsync(device, connection, transaction);
+                        }
+
+                        // COMMIT TRANSACTION
                         await transaction.CommitAsync();
                     }
                     catch (Exception ex)
