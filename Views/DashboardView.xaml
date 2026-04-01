@@ -1,17 +1,110 @@
 ﻿<UserControl x:Class="DeviceServiceManager.Views.DashboardView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:DeviceServiceManager.Views"
-             mc:Ignorable="d"
-             Background="#F3F4F6"
-             d:DesignHeight="450" d:DesignWidth="800">
-    
-    <Grid>
-        <TextBlock Text="Welcome to the Dashboard!" 
-                   FontSize="24" FontWeight="Bold" 
-                   HorizontalAlignment="Center" VerticalAlignment="Center" 
-                   Foreground="#333333"/>
+             Background="#F5F7FA">
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Titel -->
+            <RowDefinition Height="Auto"/>
+            <!-- Kacheln (KPIs) -->
+            <RowDefinition Height="*"/>
+            <!-- Liste unten -->
+        </Grid.RowDefinitions>
+
+        <!-- ÜBERSCHRIFT -->
+        <TextBlock Grid.Row="0" Text="Übersicht &amp; Kennzahlen" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,20"/>
+
+        <!-- KACHELN (UniformGrid teilt den Platz automatisch fair auf) -->
+        <UniformGrid Grid.Row="1" Columns="4" Rows="1" Margin="0,0,0,30">
+
+            <!-- Kachel 1: Kunden -->
+            <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,15,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="KUNDEN GESAMT" FontSize="11" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding TotalCustomers}" FontSize="36" FontWeight="Light" Foreground="#3498DB"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Kachel 2: Verträge -->
+            <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,15,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="AKTIVE VERTRÄGE" FontSize="11" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding ActiveContracts}" FontSize="36" FontWeight="Light" Foreground="#27AE60"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Kachel 3: Defekte Geräte -->
+            <Border Background="White" CornerRadius="8" Padding="20" Margin="0,0,15,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="DEFEKTE GERÄTE (SUPPORT)" FontSize="11" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding DefectiveDevicesCount}" FontSize="36" FontWeight="Light" Foreground="#E74C3C"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Kachel 4: Warnung Auslaufende Verträge -->
+            <Border Background="#FFF3CD" BorderBrush="#FFEEBA" BorderThickness="1" CornerRadius="8" Padding="20" Margin="0,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
+                </Border.Effect>
+                <StackPanel>
+                    <TextBlock Text="LÄUFT BALD AUS (&lt; 90 TAGE)" FontSize="11" FontWeight="Bold" Foreground="#856404" Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding ExpiringContractsCount}" FontSize="36" FontWeight="Light" Foreground="#856404"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- AKTIONSLISTE UNTEN -->
+        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="20">
+            <Border.Effect>
+                <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Handlungsbedarf: Auslaufende Verträge" FontSize="16" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+
+                <!-- ReadOnly Tabelle für die auslaufenden Verträge -->
+                <DataGrid Grid.Row="1" ItemsSource="{Binding ExpiringContractsList}" AutoGenerateColumns="False" IsReadOnly="True" 
+                          HeadersVisibility="Column" Background="#FAFAFA" BorderBrush="#E0E0E0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE" RowHeight="35">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Vertragsnummer" Binding="{Binding ContractNumber}" Width="2*"/>
+                        <DataGridTextColumn Header="Kundenname" Binding="{Binding Customer.Name}" Width="2*"/>
+                        <DataGridTextColumn Header="Läuft aus am" Binding="{Binding EndDate, StringFormat=dd.MM.yyyy}" Width="*" Foreground="#E74C3C" FontWeight="SemiBold" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Falls die Liste leer ist, zeigen wir einen kleinen Hinweistext an -->
+                <TextBlock Grid.Row="1" Text="Aktuell laufen keine Verträge aus. Gute Arbeit!" 
+                           Foreground="#95A5A6" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <!-- Standardmäßig unsichtbar -->
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <!-- Wenn die Zahl exakt 0 ist, blenden wir den Text ein! -->
+                                <DataTrigger Binding="{Binding ExpiringContractsCount}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+        </Border>
+
     </Grid>
 </UserControl>
