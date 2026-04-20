@@ -296,7 +296,7 @@
                                 <Style TargetType="DataGridRow">
                                     <Setter Property="Background" Value="White"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Status}" Value="defekt">
+                                        <DataTrigger Binding="{Binding Status}" Value="inaktiv">
                                             <Setter Property="Background" Value="#FFF5F5"/>
                                             <Setter Property="Foreground" Value="#C0392B"/>
                                         </DataTrigger>
@@ -336,21 +336,18 @@
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
 
-                                <!-- DER DEFEKT-BUTTON (Der vorhin versehentlich gelöscht wurde!) -->
-                                <DataGridTemplateColumn Width="110">
+                                <!-- DEFEKT-BUTTON -->
+                                <DataGridTemplateColumn Width="130">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Content="Defekt melden" 
-                                                    Command="{Binding DataContext.MarkDeviceDefectiveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+                                            <Button Content="Gerät deaktivieren" 
+                                                    Command="{Binding DataContext.DeactivateDeviceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                     CommandParameter="{Binding}" 
-                                                    Background="Transparent" Foreground="#E74C3C" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold">
+                                                    Background="Transparent" Foreground="#E74C3C" BorderThickness="0" Cursor="Hand" FontWeight="SemiBold" Margin="10,0,10,0">
                                                 <Button.Style>
                                                     <Style TargetType="Button">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Status}" Value="defekt">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
                                                             <DataTrigger Binding="{Binding Status}" Value="inaktiv">
                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                             </DataTrigger>

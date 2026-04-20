@@ -48,7 +48,7 @@ namespace DeviceServiceManager.Repositories
                 {
                     throw new Exception($"Die Seriennummer '{device.SerialNumber}' existiert bereits im System.", ex);
                 }
-                throw new Exception("Database error occurred while inserting the device.", ex);
+                throw new Exception($"Datenbankfehler beim Speichern des Geräts (S/N: {device.SerialNumber}): {ex.Message}", ex);
             }
         }
 

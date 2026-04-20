@@ -148,8 +148,8 @@ namespace DeviceServiceManager.ViewModels
         /// <summary> Command to add a new device into the contract. </summary>
         public ICommand AddDeviceCommand { get; }
 
-        /// <summary> Command to mark a device as defect. </summary>
-        public ICommand MarkDeviceDefectiveCommand { get; }
+        /// <summary> Command to deactive a device. </summary>
+        public ICommand DeactivateDeviceCommand { get; }
 
         /// <summary> Command to actually delete a device. </summary>
         public ICommand RemoveDeviceCommand { get; }
@@ -171,7 +171,7 @@ namespace DeviceServiceManager.ViewModels
             SaveContractCommand = new RelayCommand(async _ => await ExecuteSaveContractAsync());
             CancelCommand = new RelayCommand(ExecuteCancel);
             AddDeviceCommand = new RelayCommand(ExecuteAddDevice);
-            MarkDeviceDefectiveCommand = new RelayCommand(ExecuteMarkDeviceDefective);
+            DeactivateDeviceCommand = new RelayCommand(ExecuteDeactivateDevice);
             RemoveDeviceCommand = new RelayCommand(ExecuteRemoveDevice);
 
             // Execute the initial data load as a fire-and-forget background task
@@ -239,9 +239,14 @@ namespace DeviceServiceManager.ViewModels
             EditableContract = new MaintenanceContract
             {
                 StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddYears(4), // Default contract duration are 4 years
-                Status = "aktiv"
+                EndDate = DateTime.Today.AddYears(1), // Default contract duration is 1 year
+                Status = "aktiv",
+                CoveredDevices = new ObservableCollection<Device>()
             };
+
+            DeviceSearchText = string.Empty;
+            DevicesView = CollectionViewSource.GetDefaultView(EditableContract.CoveredDevices);
+            DevicesView.Filter = FilterDevices;
 
             IsFormVisible = true;
         }
@@ -325,6 +330,15 @@ namespace DeviceServiceManager.ViewModels
         {
             if (EditableContract != null)
             {
+
+                bool hasEmptyRow = EditableContract.CoveredDevices.Any(d => d.Id == 0 && string.IsNullOrWhiteSpace(d.SerialNumber));
+
+                if (hasEmptyRow)
+                {
+                    _dialogService.ShowWarning("Bitte füllen Sie zuerst die leere Gerätezeile aus, bevor Sie ein weiteres Gerät hinzufügen!", "Unvollständige Eingabe");
+                    return; 
+                }
+
                 EditableContract.CoveredDevices.Add(new Device
                 {
                     Status = "aktiv"
@@ -336,19 +350,11 @@ namespace DeviceServiceManager.ViewModels
         /// Marks a specific device as defective.
         /// Changes the status, triggering the UI color change automatically.
         /// </summary>
-        private void ExecuteMarkDeviceDefective(object? parameter)
+        private void ExecuteDeactivateDevice(object? parameter)
         {
             if (parameter is Device device)
             {
-                // Soft-Delete: We don't remove it, we just change the status
-                device.Status = "defekt";
-
-                // Da der Status eine normale Property ist (ohne INotifyPropertyChanged in der Device Klasse),
-                // müssen wir dem DataGrid kurz einen kleinen "Stupser" geben, damit es sich neu zeichnet.
-                // Das machen wir, indem wir die Liste kurz aktualisieren.
-                var tempList = EditableContract!.CoveredDevices.ToList();
-                EditableContract.CoveredDevices.Clear();
-                foreach (var d in tempList) EditableContract.CoveredDevices.Add(d);
+                device.Status = "inaktiv";
             }
         }
 

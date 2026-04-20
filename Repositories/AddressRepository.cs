@@ -34,7 +34,6 @@ namespace DeviceServiceManager.Repositories
             {
                 using (var command = new MySqlCommand(query, connection, transaction))
                 {
-                    // EXPLICIT TYPING instead of AddWithValue (Best Practice)
                     command.Parameters.Add("@Street", MySqlDbType.VarChar, 150).Value = address.Street;
                     command.Parameters.Add("@HouseNumber", MySqlDbType.VarChar, 10).Value = address.HouseNumber;
                     command.Parameters.Add("@ZipCode", MySqlDbType.VarChar, 10).Value = address.ZipCode;

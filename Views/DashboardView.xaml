@@ -47,7 +47,7 @@
                     <DropShadowEffect Color="#DDDDDD" Direction="320" ShadowDepth="2" BlurRadius="5" Opacity="0.4"/>
                 </Border.Effect>
                 <StackPanel>
-                    <TextBlock Text="DEFEKTE GERÄTE (SUPPORT)" FontSize="11" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
+                    <TextBlock Text="INAKTIVE GERÄTE" FontSize="11" FontWeight="Bold" Foreground="#95A5A6" Margin="0,0,0,10"/>
                     <TextBlock Text="{Binding DefectiveDevicesCount}" FontSize="36" FontWeight="Light" Foreground="#E74C3C"/>
                 </StackPanel>
             </Border>

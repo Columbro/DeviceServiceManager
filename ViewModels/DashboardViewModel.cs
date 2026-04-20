@@ -67,10 +67,10 @@ namespace DeviceServiceManager.ViewModels
                 // 2. KPI: Active contracts
                 ActiveContracts = contracts.Count(c => c.Status.Equals("aktiv", StringComparison.OrdinalIgnoreCase));
 
-                // 3. KPI: Defective devices (We search all contracts for defective devices)
+                // 3. KPI: Defective devices (We search all contracts for inactive devices)
                 DefectiveDevicesCount = contracts
                     .SelectMany(c => c.CoveredDevices)
-                    .Count(d => d.Status.Equals("defekt", StringComparison.OrdinalIgnoreCase));
+                    .Count(d => d.Status.Equals("inaktiv", StringComparison.OrdinalIgnoreCase));
 
                 // 4. KPI & List: Expiring Contracts (Active, but with an expiration date within the next 90 days)
                 DateTime thresholdDate = DateTime.Today.AddDays(90);
