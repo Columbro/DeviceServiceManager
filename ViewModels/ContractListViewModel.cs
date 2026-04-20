@@ -220,12 +220,18 @@ namespace DeviceServiceManager.ViewModels
             var filteredList = string.IsNullOrWhiteSpace(SearchText)
                 ? _allContractsCache
                 : _allContractsCache.Where(c =>
+                    // Suche in Vertragsnummer
                     c.ContractNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    // Suche im Kundennamen
                     (c.Customer != null && c.Customer.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) ||
-                    c.Status.Contains(SearchText, StringComparison.OrdinalIgnoreCase)
+                    // Suche im Status
+                    c.Status.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+
+                    // FIX 3: DEEP SEARCH! Suche in ALLEN Geräten dieses Vertrags nach der Seriennummer!
+                    c.CoveredDevices.Any(d => !string.IsNullOrWhiteSpace(d.SerialNumber) &&
+                                              d.SerialNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
 
-            // Single update to the UI collection
             Contracts = new ObservableCollection<MaintenanceContract>(filteredList);
         }
 

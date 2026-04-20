@@ -8,6 +8,7 @@
 
         <!-- 1. MODERN TEXTBOX STYLE -->
         <Style TargetType="TextBox">
+            <Setter Property="MinHeight" Value="32"/>
             <Setter Property="Padding" Value="8,6"/>
             <Setter Property="Margin" Value="0,5,0,15"/>
             <Setter Property="BorderBrush" Value="#D1D8E0"/>
@@ -18,19 +19,36 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="TextBox">
-                        <Border CornerRadius="5" BorderBrush="{TemplateBinding BorderBrush}" 
+                        <Border CornerRadius="4" BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
                                 Background="{TemplateBinding Background}">
-                            <ScrollViewer x:Name="PART_ContentHost"/>
+                            <!-- Ein Grid, das den echten Text UND den Placeholder übereinanderlegt -->
+                            <Grid>
+                                <!-- Der Placeholder-Text (greift auf das Attribut 'Tag' der TextBox zu) -->
+                                <TextBlock x:Name="Watermark" 
+                                           Text="{TemplateBinding Tag}" 
+                                           Foreground="#A5B1C2" 
+                                           FontStyle="Italic"
+                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}" 
+                                           Margin="{TemplateBinding Padding}" 
+                                           Visibility="Collapsed" 
+                                           IsHitTestVisible="False"/>
+
+                                <!-- Die echte TextBox -->
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="0"/>
+                            </Grid>
                         </Border>
+
+                        <!-- DIE MAGIE: Wann wird der Placeholder angezeigt? -->
                         <ControlTemplate.Triggers>
-                            <!-- Wenn der Nutzer ins Feld klickt: Blauer Rahmen, weißer Hintergrund -->
+                            <!-- Wenn die TextBox leer ist, zeige den Placeholder! -->
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Watermark" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <!-- Fokus-Effekte -->
                             <Trigger Property="IsFocused" Value="True">
                                 <Setter Property="BorderBrush" Value="#3498DB"/>
                                 <Setter Property="Background" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="BorderBrush" Value="#A5B1C2"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -183,7 +201,7 @@
                     <TextBlock Text="Kundenübersicht" FontSize="20" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10"/>
                     <Grid>
                         <!-- TextBox nutzt nun automatisch unseren neuen Style -->
-                        <TextBox Padding="10,8,30,8" Margin="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="#F8F9FA"/>
+                        <TextBox Tag="Suche nach Name. Kd-Nr. oder Ansprechpartner..." Padding="10,8,30,8" Margin="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Background="#F8F9FA"/>
                         <Image Source="/Assets/search_icon.png" Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" IsHitTestVisible="False" Opacity="0.5"/>
                     </Grid>
                 </StackPanel>
