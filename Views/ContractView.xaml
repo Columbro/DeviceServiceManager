@@ -225,12 +225,19 @@
 
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="15"/>
                                 <ColumnDefinition Width="2*"/>
                                 <ColumnDefinition Width="15"/>
                                 <ColumnDefinition Width="1*"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
+                                <TextBlock Text="Vertragsnummer *" Foreground="#34495E" FontSize="13"/>
+                                <TextBox Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged}"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
                                 <TextBlock Text="Kunde (Zuweisung) *" Foreground="#34495E" FontSize="13"/>
                                 <ComboBox IsEditable="True" IsTextSearchEnabled="True" 
                                           ItemsSource="{Binding DataContext.AvailableCustomers, RelativeSource={RelativeSource AncestorType=UserControl}}" 
@@ -239,7 +246,7 @@
                                           SelectedValue="{Binding CustomerId, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="2">
+                            <StackPanel Grid.Column="4">
                                 <TextBlock Text="Status" Foreground="#34495E" FontSize="13"/>
                                 <ComboBox SelectedValue="{Binding Status}" SelectedValuePath="Content">
                                     <ComboBoxItem Content="aktiv"/>

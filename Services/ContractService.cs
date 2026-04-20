@@ -51,8 +51,6 @@ namespace DeviceServiceManager.Services
                         if (contract.Id == 0)
                         {
                             // INSERT contract
-                            int currentMax = await _contractRepository.GetMaxContractNumberAsync(connection, transaction);
-                            contract.ContractNumber = $"V-{currentMax + 1}";
                             contract.Id = await _contractRepository.AddAsync(contract, connection, transaction);
                         }
                         else

@@ -258,6 +258,12 @@ namespace DeviceServiceManager.ViewModels
         {
             if (EditableContract == null) return;
 
+            if (string.IsNullOrWhiteSpace(EditableContract.ContractNumber))
+            {
+                _dialogService.ShowWarning("Bitte geben Sie eine Vertragsnummer ein!", "Fehlende Daten");
+                return;
+            }
+
             // Business Validation: A contract must be linked to a customer
             if (EditableContract.CustomerId <= 0)
             {
