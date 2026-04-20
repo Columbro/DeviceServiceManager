@@ -1,8 +1,8 @@
 ﻿using DeviceServiceManager.Core;
 using DeviceServiceManager.Models;
+using DeviceServiceManager.Repositories;
 using DeviceServiceManager.Services;
 using System.Collections.ObjectModel;
-using System.Windows;
 using System.Windows.Input;
 
 namespace DeviceServiceManager.ViewModels
@@ -24,6 +24,7 @@ namespace DeviceServiceManager.ViewModels
         private bool _isDeliveryAddressDifferent;
         private List<Customer> _allCustomersCache = new();
         private ObservableCollection<Customer> _customers = new();
+        private readonly CountryRepository _countryRepository;
 
         /// <summary>
         /// Gets the collection of customers displayed in the list (Master).
@@ -117,15 +118,7 @@ namespace DeviceServiceManager.ViewModels
         /// <summary>
         /// A predefined list of countries for the UI ComboBox to ensure data consistency.
         /// </summary>
-        public List<string> AvailableCountries { get; } = new()
-        {
-            "Deutschland",
-            "Österreich",
-            "Schweiz",
-            "Niederlande",
-            "Belgien",
-            "Frankreich"
-        };
+        public ObservableCollection<Country> AvailableCountries { get; } = new();
 
         // --- Commands ---
 
@@ -141,6 +134,7 @@ namespace DeviceServiceManager.ViewModels
         {
             _customerService = new CustomerService();
             _dialogService = new WpfDialogService();
+            _countryRepository = new CountryRepository();
 
             IsFormVisible = false;
 
@@ -163,8 +157,8 @@ namespace DeviceServiceManager.ViewModels
 
             EditableCustomer = new Customer
             {
-                BillingAddress = new Address { Country = "Deutschland" },
-                DeliveryAddress = new Address { Country = "Deutschland" }
+                BillingAddress = new Address (),
+                DeliveryAddress = new Address ()
             };
 
             IsDeliveryAddressDifferent = false;
@@ -261,12 +255,19 @@ namespace DeviceServiceManager.ViewModels
         {
             try
             {
+                var countriesFromDb = await _countryRepository.GetAllAsync();
+                AvailableCountries.Clear();
+                foreach (var country in countriesFromDb)
+                {
+                    AvailableCountries.Add(country);
+                }
+
                 _allCustomersCache = await _customerService.GetAllCustomersAsync();
                 ApplySearchFilter();
             }
             catch (Exception ex)
             {
-                _dialogService.ShowError($"Fehler beim Laden der Kundenliste:\n{ex.Message}", "Datenbankfehler");
+                _dialogService.ShowError($"Fehler beim Laden der Daten:\n{ex.Message}", "Datenbankfehler");
             }
         }
 

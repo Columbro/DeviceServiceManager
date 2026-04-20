@@ -291,7 +291,10 @@
                                 <StackPanel Grid.Column="4">
                                     <TextBlock Text="Land *" Foreground="#34495E" FontSize="13"/>
                                     <ComboBox ItemsSource="{Binding DataContext.AvailableCountries, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                              SelectedItem="{Binding Country}" Margin="0,5,0,15" Padding="5"/>
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding CountryId}" 
+                                              Margin="0,5,0,15" Padding="5"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>
@@ -340,7 +343,10 @@
                                 <StackPanel Grid.Column="4">
                                     <TextBlock Text="Land *" Foreground="#34495E" FontSize="13"/>
                                     <ComboBox ItemsSource="{Binding DataContext.AvailableCountries, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                              SelectedItem="{Binding Country}" Margin="0,5,0,15" Padding="5"/>
+                                              DisplayMemberPath="Name"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding CountryId}" 
+                                              Margin="0,5,0,15" Padding="5"/>
                                 </StackPanel>
                             </Grid>
                         </StackPanel>

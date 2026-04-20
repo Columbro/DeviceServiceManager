@@ -8,7 +8,7 @@ namespace DeviceServiceManager.Models
         public string HouseNumber { get; set; } = string.Empty;
         public string ZipCode {  get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
-        public string Country { get; set; } = "Deutschland";
+        public int CountryId { get; set; } = 1;
         public DateTime CreatedAt { get; set; }
 
         public Address Clone()
@@ -20,7 +20,7 @@ namespace DeviceServiceManager.Models
                 HouseNumber = this.HouseNumber,
                 ZipCode = this.ZipCode,
                 City = this.City,
-                Country = this.Country,
+                CountryId = this.CountryId,
                 CreatedAt = this.CreatedAt
             };
         }

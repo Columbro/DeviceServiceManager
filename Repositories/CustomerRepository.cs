@@ -132,8 +132,8 @@ namespace DeviceServiceManager.Repositories
                 SELECT 
                     k.id, k.kundennummer, k.name, k.ansprechpartner, k.email, k.telefon, k.erstellt_am,
                     k.rechnungsadresse_id, k.lieferadresse_id,
-                    r.id AS r_id, r.strasse AS r_strasse, r.hausnummer AS r_hausnummer, r.plz AS r_plz, r.ort AS r_ort, r.land AS r_land,
-                    l.id AS l_id, l.strasse AS l_strasse, l.hausnummer AS l_hausnummer, l.plz AS l_plz, l.ort AS l_ort, l.land AS l_land
+                    r.id AS r_id, r.strasse AS r_strasse, r.hausnummer AS r_hausnummer, r.plz AS r_plz, r.ort AS r_ort, r.land_id AS r_land_id,
+                    l.id AS l_id, l.strasse AS l_strasse, l.hausnummer AS l_hausnummer, l.plz AS l_plz, l.ort AS l_ort, l.land_id AS l_land_id
                 FROM kunden k
                 INNER JOIN adressen r ON k.rechnungsadresse_id = r.id
                 INNER JOIN adressen l ON k.lieferadresse_id = l.id
@@ -170,7 +170,7 @@ namespace DeviceServiceManager.Repositories
                                 HouseNumber = reader.GetString("r_hausnummer"),
                                 ZipCode = reader.GetString("r_plz"),
                                 City = reader.GetString("r_ort"),
-                                Country = reader.GetString("r_land")
+                                CountryId = reader.GetInt32("r_land_id")
                             },
 
                             // Map the Delivery Address
@@ -181,7 +181,7 @@ namespace DeviceServiceManager.Repositories
                                 HouseNumber = reader.GetString("l_hausnummer"),
                                 ZipCode = reader.GetString("l_plz"),
                                 City = reader.GetString("l_ort"),
-                                Country = reader.GetString("l_land")
+                                CountryId = reader.GetInt32("l_land_id")
                             }
                         };
 

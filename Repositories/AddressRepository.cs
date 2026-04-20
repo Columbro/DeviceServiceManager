@@ -26,8 +26,8 @@ namespace DeviceServiceManager.Repositories
         /// <returns>The auto-generated database ID of the new address.</returns>
         public async Task<int> AddAsync(Address address, MySqlConnection connection, MySqlTransaction transaction)
         {
-            string query = @"INSERT INTO adressen (strasse, hausnummer, plz, ort, land) 
-                             VALUES (@Street, @HouseNumber, @ZipCode, @City, @Country);
+            string query = @"INSERT INTO adressen (strasse, hausnummer, plz, ort, land_id) 
+                             VALUES (@Street, @HouseNumber, @ZipCode, @City, @CountryId);
                              SELECT LAST_INSERT_ID();";
 
             try
@@ -39,9 +39,7 @@ namespace DeviceServiceManager.Repositories
                     command.Parameters.Add("@HouseNumber", MySqlDbType.VarChar, 10).Value = address.HouseNumber;
                     command.Parameters.Add("@ZipCode", MySqlDbType.VarChar, 10).Value = address.ZipCode;
                     command.Parameters.Add("@City", MySqlDbType.VarChar, 100).Value = address.City;
-
-                    string country = string.IsNullOrWhiteSpace(address.Country) ? "Deutschland" : address.Country;
-                    command.Parameters.Add("@Country", MySqlDbType.VarChar, 50).Value = country;
+                    command.Parameters.Add("@CountryId", MySqlDbType.Int32).Value = address.CountryId;
 
                     var result = await command.ExecuteScalarAsync();
                     return Convert.ToInt32(result);
@@ -61,7 +59,7 @@ namespace DeviceServiceManager.Repositories
         {
             string query = @"UPDATE adressen 
                              SET strasse = @Street, hausnummer = @HouseNumber, 
-                                 plz = @ZipCode, ort = @City, land = @Country
+                                 plz = @ZipCode, ort = @City, land_id = @CountryId
                              WHERE id = @Id;";
 
             try
@@ -73,9 +71,7 @@ namespace DeviceServiceManager.Repositories
                     command.Parameters.Add("@HouseNumber", MySqlDbType.VarChar, 10).Value = address.HouseNumber;
                     command.Parameters.Add("@ZipCode", MySqlDbType.VarChar, 10).Value = address.ZipCode;
                     command.Parameters.Add("@City", MySqlDbType.VarChar, 100).Value = address.City;
-
-                    string country = string.IsNullOrWhiteSpace(address.Country) ? "Deutschland" : address.Country;
-                    command.Parameters.Add("@Country", MySqlDbType.VarChar, 50).Value = country;
+                    command.Parameters.Add("@CountryId", MySqlDbType.Int32).Value = address.CountryId;
 
                     await command.ExecuteNonQueryAsync();
                 }
